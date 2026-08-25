@@ -41,6 +41,7 @@ com\skillswap\model\BaseEntity.class
 com\skillswap\model\ClassAttendance$ClassAttendanceBuilder.class
 com\skillswap\dto\MessageRequest.class
 com\skillswap\exception\BadRequestException.class
+com\skillswap\config\DataInitializer.class
 com\skillswap\service\SkillService.class
 com\skillswap\service\SkillServiceImpl.class
 com\skillswap\repository\ClassFeedbackRepository.class
