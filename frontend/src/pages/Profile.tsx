@@ -13,7 +13,8 @@ import {
   BookOpen, 
   Edit3, 
   Sparkles,
-  Award
+  Award,
+  Presentation
 } from 'lucide-react';
 
 export const Profile: React.FC = () => {

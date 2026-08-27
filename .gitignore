@@ -53,3 +53,11 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Project specific targets
+backend/target/
+frontend/node_modules/
+frontend/dist/
+*.class
+*.mv.db
+
