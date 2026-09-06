@@ -27,7 +27,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   if (!user) return <>{children}</>;
 
   const menuItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Profile', path: '/profile', icon: User },
     { name: 'Connections', path: '/connections', icon: Users },
     { name: 'Messages', path: '/chat', icon: MessageSquare },
@@ -103,7 +103,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Header */}
         <header className="h-16 border-b border-[#45f3ff]/10 flex items-center justify-between px-8 bg-[#1f2833]/50 backdrop-blur-md sticky top-0 z-40 shrink-0">
           <div className="text-lg font-medium text-white capitalize">
-            {location.pathname === '/' ? 'Match Finder' : location.pathname.substring(1).replace('-', ' ')}
+            {location.pathname === '/dashboard' || location.pathname === '/' ? 'Match Finder' : location.pathname.substring(1).replace('-', ' ')}
           </div>
 
           {/* Stats Bar */}

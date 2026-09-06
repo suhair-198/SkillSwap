@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Layout } from './components/Layout';
+import { Landing } from './pages/Landing';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 import { Profile } from './pages/Profile';
@@ -35,10 +36,11 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
 
           {/* Protected App Routes */}
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
@@ -55,3 +57,4 @@ function App() {
 }
 
 export default App;
+
