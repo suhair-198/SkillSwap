@@ -166,16 +166,54 @@ export const Login: React.FC = () => {
         </form>
 
         {/* Divider & Switch */}
-        <div className="mt-8 pt-6 border-t border-gray-800 text-center">
+        <div className="mt-6 pt-6 border-t border-gray-800 text-center space-y-4">
           <button
+            type="button"
             onClick={() => {
               setIsRegistering(!isRegistering);
               setError('');
             }}
-            className="text-sm text-[#45f3ff] hover:underline"
+            className="text-sm text-[#45f3ff] hover:underline block w-full"
           >
             {isRegistering ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>
+
+          {/* Quick Demo Login Buttons */}
+          <div className="pt-2">
+            <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold block mb-2">Quick Demo Accounts</span>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('alice@skillswap.com');
+                  setPassword('password');
+                }}
+                className="bg-[#0b0c10]/80 hover:bg-[#45f3ff]/10 border border-gray-700 hover:border-[#45f3ff]/40 text-xs py-2 rounded-lg text-gray-300 transition-colors"
+              >
+                Alice (MIT)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('bob@skillswap.com');
+                  setPassword('password');
+                }}
+                className="bg-[#0b0c10]/80 hover:bg-[#6f42c1]/10 border border-gray-700 hover:border-[#6f42c1]/40 text-xs py-2 rounded-lg text-gray-300 transition-colors"
+              >
+                Bob (Harvard)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('charlie@skillswap.com');
+                  setPassword('password');
+                }}
+                className="bg-[#0b0c10]/80 hover:bg-emerald-500/10 border border-gray-700 hover:border-emerald-500/40 text-xs py-2 rounded-lg text-gray-300 transition-colors"
+              >
+                Charlie
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

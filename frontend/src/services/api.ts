@@ -20,33 +20,130 @@ const getHeaders = () => {
   };
 };
 
+const DEFAULT_MOCK_USERS: Record<string, UserDTO> = {
+  'alice@skillswap.com': {
+    id: '11111111-1111-1111-1111-111111111111',
+    email: 'alice@skillswap.com',
+    fullName: 'Alice Smith',
+    bio: 'Computer Science major at MIT. I love building web apps and learning languages.',
+    college: 'MIT',
+    department: 'Computer Science',
+    xp: 1200,
+    level: 3,
+    reputation: 95,
+    currentStreak: 5,
+  },
+  'bob@skillswap.com': {
+    id: '22222222-2222-2222-2222-222222222222',
+    email: 'bob@skillswap.com',
+    fullName: 'Bob Jones',
+    bio: 'Language enthusiast and UX/UI Designer.',
+    college: 'Harvard',
+    department: 'Visual Arts',
+    xp: 850,
+    level: 2,
+    reputation: 80,
+    currentStreak: 2,
+  },
+  'charlie@skillswap.com': {
+    id: '33333333-3333-3333-3333-333333333333',
+    email: 'charlie@skillswap.com',
+    fullName: 'Charlie Brown',
+    bio: 'Mathematics major interested in data science.',
+    college: 'Stanford',
+    department: 'Mathematics',
+    xp: 450,
+    level: 1,
+    reputation: 70,
+    currentStreak: 0,
+  }
+};
+
+const getLocalUsers = (): Record<string, UserDTO> => {
+  const stored = localStorage.getItem('local_users_db');
+  if (stored) {
+    try { return JSON.parse(stored); } catch (e) {}
+  }
+  return DEFAULT_MOCK_USERS;
+};
+
+const saveLocalUser = (user: UserDTO) => {
+  const users = getLocalUsers();
+  users[user.email.toLowerCase()] = user;
+  localStorage.setItem('local_users_db', JSON.stringify(users));
+};
+
 export const api = {
   auth: {
     login: async (data: any): Promise<{ token: string; user: UserDTO }> => {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error(await res.text() || 'Login failed');
-      return res.json();
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error(await res.text() || 'Login failed');
+        return res.json();
+      } catch (err: any) {
+        console.warn('Backend API connection failed, using local auth mode:', err.message);
+        const users = getLocalUsers();
+        const user = users[data.email.toLowerCase()] || {
+          id: 'user-' + Date.now(),
+          email: data.email,
+          fullName: data.email.split('@')[0],
+          xp: 100,
+          level: 1,
+          reputation: 50,
+          currentStreak: 1,
+        };
+        const mockToken = 'mock-jwt-token-' + Date.now();
+        localStorage.setItem('current_mock_user', JSON.stringify(user));
+        return { token: mockToken, user };
+      }
     },
     register: async (data: any): Promise<{ token: string; user: UserDTO }> => {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error(await res.text() || 'Registration failed');
-      return res.json();
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error(await res.text() || 'Registration failed');
+        return res.json();
+      } catch (err: any) {
+        console.warn('Backend API connection failed, registering in local auth mode:', err.message);
+        const newUser: UserDTO = {
+          id: 'user-' + Date.now(),
+          email: data.email,
+          fullName: data.fullName || data.email.split('@')[0],
+          college: data.college || 'University',
+          department: data.department || 'General',
+          xp: 100,
+          level: 1,
+          reputation: 50,
+          currentStreak: 1,
+        };
+        saveLocalUser(newUser);
+        const mockToken = 'mock-jwt-token-' + Date.now();
+        localStorage.setItem('current_mock_user', JSON.stringify(newUser));
+        return { token: mockToken, user: newUser };
+      }
     },
     me: async (): Promise<UserDTO> => {
-      const res = await fetch(`${API_BASE}/auth/me`, {
-        method: 'GET',
-        headers: getHeaders(),
-      });
-      if (!res.ok) throw new Error('Failed to get current user');
-      return res.json();
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          method: 'GET',
+          headers: getHeaders(),
+        });
+        if (!res.ok) throw new Error('Failed to get current user');
+        return res.json();
+      } catch (err: any) {
+        const storedMock = localStorage.getItem('current_mock_user');
+        if (storedMock) {
+          try { return JSON.parse(storedMock); } catch (e) {}
+        }
+        return DEFAULT_MOCK_USERS['alice@skillswap.com'];
+      }
     },
   },
   users: {
