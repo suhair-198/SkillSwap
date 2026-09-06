@@ -28,7 +28,7 @@ export const Login: React.FC = () => {
       } else {
         await login(email, password);
       }
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please check your credentials.');
     } finally {
@@ -37,27 +37,30 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0b0c10] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] px-4 relative overflow-hidden">
       {/* Background Decorative Glows */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#45f3ff]/10 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#6f42c1]/10 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-200/50 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-slate-200/70 rounded-full blur-[100px] pointer-events-none"></div>
 
-      <div className="w-full max-w-md bg-[#1f2833]/80 backdrop-blur-md rounded-2xl border border-[#45f3ff]/20 p-8 shadow-glow-lg relative z-10">
+      <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-8 shadow-xl relative z-10">
         {/* Brand Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="h-12 w-12 bg-gradient-to-tr from-[#45f3ff] to-[#6f42c1] rounded-xl flex items-center justify-center shadow-glow mb-3">
+          <div 
+            onClick={() => navigate('/')}
+            className="h-12 w-12 bg-gradient-to-tr from-[#ff6b00] to-orange-500 rounded-2xl flex items-center justify-center shadow-glow mb-3 cursor-pointer"
+          >
             <Zap className="h-6 w-6 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-wide">
-            {isRegistering ? 'Create your profile' : 'Welcome to SkillSwap'}
+          <h2 className="text-2xl font-black text-[#0f172a] tracking-tight">
+            {isRegistering ? 'Create Your Account' : 'Welcome to SkillSwap'}
           </h2>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-xs text-slate-500 font-semibold mt-1">
             {isRegistering ? 'Connect with peers and share your skills' : 'Sign in to swap skills with students'}
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3 mb-6 text-center">
+          <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-xl p-3 mb-6 text-center">
             {error}
           </div>
         )}
@@ -66,9 +69,9 @@ export const Login: React.FC = () => {
           {/* Full Name (Register Only) */}
           {isRegistering && (
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Full Name</label>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Full Name</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                   <User className="h-4 w-4" />
                 </span>
                 <input
@@ -77,7 +80,7 @@ export const Login: React.FC = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="John Doe"
-                  className="w-full bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
+                  className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
                 />
               </div>
             </div>
@@ -85,9 +88,9 @@ export const Login: React.FC = () => {
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Address</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                 <Mail className="h-4 w-4" />
               </span>
               <input
@@ -96,16 +99,16 @@ export const Login: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@college.edu"
-                className="w-full bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
+                className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
               />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                 <Lock className="h-4 w-4" />
               </span>
               <input
@@ -114,7 +117,7 @@ export const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
+                className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
               />
             </div>
           </div>
@@ -123,9 +126,9 @@ export const Login: React.FC = () => {
           {isRegistering && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">College</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">College</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                     <GraduationCap className="h-4 w-4" />
                   </span>
                   <input
@@ -133,14 +136,14 @@ export const Login: React.FC = () => {
                     value={college}
                     onChange={(e) => setCollege(e.target.value)}
                     placeholder="MIT"
-                    className="w-full bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
+                    className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Department</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Department</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                     <Building className="h-4 w-4" />
                   </span>
                   <input
@@ -148,7 +151,7 @@ export const Login: React.FC = () => {
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     placeholder="EECS"
-                    className="w-full bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
+                    className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 pl-10 pr-4 outline-none transition-colors text-sm"
                   />
                 </div>
               </div>
@@ -159,28 +162,28 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-[#45f3ff] to-[#6f42c1] hover:brightness-110 active:scale-[0.98] text-white font-semibold rounded-xl py-3 mt-6 transition-all shadow-glow text-sm disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full bg-gradient-to-r from-[#ff6b00] to-orange-600 hover:brightness-110 active:scale-[0.98] text-white font-extrabold rounded-xl py-3 mt-6 transition-all shadow-glow text-sm disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? 'Authenticating...' : isRegistering ? 'Create Account' : 'Sign In'}
           </button>
         </form>
 
         {/* Divider & Switch */}
-        <div className="mt-6 pt-6 border-t border-gray-800 text-center space-y-4">
+        <div className="mt-6 pt-6 border-t border-slate-200 text-center space-y-4">
           <button
             type="button"
             onClick={() => {
               setIsRegistering(!isRegistering);
               setError('');
             }}
-            className="text-sm text-[#45f3ff] hover:underline block w-full"
+            className="text-sm font-bold text-[#ff6b00] hover:underline block w-full"
           >
             {isRegistering ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>
 
           {/* Quick Demo Login Buttons */}
           <div className="pt-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold block mb-2">Quick Demo Accounts</span>
+            <span className="text-xs text-slate-500 uppercase tracking-wider font-extrabold block mb-2">Quick Demo Accounts</span>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
@@ -188,7 +191,7 @@ export const Login: React.FC = () => {
                   setEmail('alice@skillswap.com');
                   setPassword('password');
                 }}
-                className="bg-[#0b0c10]/80 hover:bg-[#45f3ff]/10 border border-gray-700 hover:border-[#45f3ff]/40 text-xs py-2 rounded-lg text-gray-300 transition-colors"
+                className="bg-slate-50 hover:bg-orange-50 border border-slate-300 hover:border-orange-300 text-xs py-2 rounded-lg font-bold text-slate-700 hover:text-[#ff6b00] transition-colors"
               >
                 Alice (MIT)
               </button>
@@ -198,7 +201,7 @@ export const Login: React.FC = () => {
                   setEmail('bob@skillswap.com');
                   setPassword('password');
                 }}
-                className="bg-[#0b0c10]/80 hover:bg-[#6f42c1]/10 border border-gray-700 hover:border-[#6f42c1]/40 text-xs py-2 rounded-lg text-gray-300 transition-colors"
+                className="bg-slate-50 hover:bg-slate-100 border border-slate-300 hover:border-slate-400 text-xs py-2 rounded-lg font-bold text-slate-700 transition-colors"
               >
                 Bob (Harvard)
               </button>
@@ -208,7 +211,7 @@ export const Login: React.FC = () => {
                   setEmail('charlie@skillswap.com');
                   setPassword('password');
                 }}
-                className="bg-[#0b0c10]/80 hover:bg-emerald-500/10 border border-gray-700 hover:border-emerald-500/40 text-xs py-2 rounded-lg text-gray-300 transition-colors"
+                className="bg-slate-50 hover:bg-emerald-50 border border-slate-300 hover:border-emerald-300 text-xs py-2 rounded-lg font-bold text-slate-700 hover:text-emerald-700 transition-colors"
               >
                 Charlie
               </button>

@@ -115,12 +115,11 @@ export const Groups: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#45f3ff]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff6b00]"></div>
       </div>
     );
   }
 
-  // Check membership
   const isMember = (groupId: string) => myGroups.some(g => g.id === groupId);
 
   return (
@@ -131,26 +130,25 @@ export const Groups: React.FC = () => {
           {/* Back button */}
           <button
             onClick={() => setSelectedGroup(null)}
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#ff6b00] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Groups List</span>
           </button>
 
           {/* Group Jumbotron */}
-          <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="absolute -top-12 -right-12 h-40 w-40 bg-[#45f3ff]/10 rounded-full blur-3xl"></div>
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-[#45f3ff]/20 to-[#6f42c1]/20 border border-[#45f3ff]/20 flex items-center justify-center font-bold text-[#45f3ff] text-xl shrink-0">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-extrabold text-white text-xl shrink-0 shadow-glow">
                   #
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-wide">{selectedGroup.name}</h2>
-                  <p className="text-xs text-gray-400">Created by {selectedGroup.creator.fullName}</p>
+                  <h2 className="text-xl font-black text-[#0f172a] tracking-wide">{selectedGroup.name}</h2>
+                  <p className="text-xs text-slate-500 font-medium">Created by {selectedGroup.creator.fullName}</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300 mt-4 leading-relaxed italic max-w-2xl">
+              <p className="text-sm text-slate-700 mt-4 leading-relaxed italic max-w-2xl font-medium">
                 {selectedGroup.description || 'No description available for this group.'}
               </p>
             </div>
@@ -158,14 +156,14 @@ export const Groups: React.FC = () => {
             <div className="flex gap-3 shrink-0">
               <button
                 onClick={() => navigate(`/chat?groupId=${selectedGroup.id}`)}
-                className="bg-gradient-to-r from-[#45f3ff]/20 to-[#6f42c1]/20 hover:from-[#45f3ff] hover:to-[#6f42c1] text-[#45f3ff] hover:text-white border border-[#45f3ff]/30 hover:border-transparent rounded-xl py-2.5 px-5 text-sm font-semibold flex items-center gap-1.5 transition-all hover:shadow-glow"
+                className="bg-gradient-to-r from-[#ff6b00] to-orange-600 text-white rounded-xl py-2.5 px-5 text-sm font-extrabold flex items-center gap-1.5 transition-all shadow-glow"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>Group Chat</span>
               </button>
               <button
                 onClick={() => handleLeaveGroup(selectedGroup.id)}
-                className="bg-red-500/10 hover:bg-red-500 border border-red-500/30 hover:border-transparent text-red-400 hover:text-white font-semibold rounded-xl py-2.5 px-5 text-sm flex items-center gap-1.5 transition-all"
+                className="bg-red-50 hover:bg-red-600 border border-red-200 hover:border-transparent text-red-700 hover:text-white font-bold rounded-xl py-2.5 px-5 text-sm flex items-center gap-1.5 transition-all"
               >
                 <DoorOpen className="h-4 w-4" />
                 <span>Leave</span>
@@ -176,14 +174,14 @@ export const Groups: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Col: Members List (Span 2) */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 shadow-lg">
-                <h3 className="text-base font-bold text-white tracking-wide mb-4 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-[#45f3ff]" />
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+                <h3 className="text-base font-extrabold text-[#0f172a] tracking-wide mb-4 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-[#ff6b00]" />
                   <span>Group Members ({groupMembers.length})</span>
                 </h3>
 
                 {loadingDetails ? (
-                  <div className="text-center py-6">Loading members...</div>
+                  <div className="text-center py-6 text-xs text-slate-500 font-bold">Loading members...</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {groupMembers.map((m) => {
@@ -191,17 +189,17 @@ export const Groups: React.FC = () => {
                       return (
                         <div 
                           key={m.id}
-                          className="flex items-center gap-3 p-3 bg-[#0b0c10]/40 border border-gray-800 rounded-xl"
+                          className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl"
                         >
-                          <div className="h-9 w-9 bg-gradient-to-tr from-[#45f3ff]/20 to-[#6f42c1]/20 border border-[#45f3ff]/20 flex items-center justify-center font-bold text-white text-sm rounded-lg shrink-0">
+                          <div className="h-9 w-9 bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-bold text-white text-sm rounded-lg shrink-0 shadow-glow">
                             {m.fullName.charAt(0)}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-white text-xs flex items-center gap-1">
+                            <div className="font-extrabold text-[#0f172a] text-xs flex items-center gap-1">
                               {m.fullName}
-                              {isCreator && <Crown className="h-3 w-3 text-yellow-500 fill-yellow-500" />}
+                              {isCreator && <Crown className="h-3 w-3 text-amber-500 fill-amber-500" />}
                             </div>
-                            <div className="text-[10px] text-gray-500 truncate">{m.college || 'Swap Student'}</div>
+                            <div className="text-[10px] text-slate-500 font-medium truncate">{m.college || 'Swap Student'}</div>
                           </div>
                         </div>
                       );
@@ -213,29 +211,29 @@ export const Groups: React.FC = () => {
 
             {/* Right Col: Group Classes */}
             <div className="space-y-6">
-              <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 shadow-lg">
-                <h3 className="text-base font-bold text-white tracking-wide mb-4 flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-[#45f3ff]" />
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+                <h3 className="text-base font-extrabold text-[#0f172a] tracking-wide mb-4 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-[#ff6b00]" />
                   <span>Group Classes</span>
                 </h3>
 
                 {loadingDetails ? (
-                  <div className="text-center py-6">Loading classes...</div>
+                  <div className="text-center py-6 text-xs text-slate-500 font-bold">Loading classes...</div>
                 ) : groupClasses.length === 0 ? (
-                  <div className="text-center py-8 text-xs text-gray-500">No classes scheduled for this group.</div>
+                  <div className="text-center py-8 text-xs text-slate-400 font-bold">No classes scheduled for this group.</div>
                 ) : (
                   <div className="space-y-3">
                     {groupClasses.map((c) => (
                       <div 
                         key={c.id}
                         onClick={() => navigate('/classes')} 
-                        className="p-3 bg-[#0b0c10]/40 border border-gray-800 rounded-xl hover:border-[#45f3ff]/30 cursor-pointer transition-all"
+                        className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-orange-300 cursor-pointer transition-all"
                       >
-                        <div className="font-semibold text-white text-xs truncate">{c.title}</div>
-                        <div className="text-[10px] text-gray-400 mt-1">
+                        <div className="font-extrabold text-[#0f172a] text-xs truncate">{c.title}</div>
+                        <div className="text-[10px] text-slate-500 font-medium mt-1">
                           {new Date(c.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                         </div>
-                        <div className="text-[9px] text-[#45f3ff] mt-0.5">{c.meetingPlatform}</div>
+                        <div className="text-[9px] font-bold text-[#ff6b00] mt-0.5">{c.meetingPlatform}</div>
                       </div>
                     ))}
                   </div>
@@ -249,23 +247,23 @@ export const Groups: React.FC = () => {
         <div className="space-y-6">
           {/* Header row */}
           <div className="flex justify-between items-center">
-            <div className="flex border-b border-gray-800">
+            <div className="flex border-b border-slate-200">
               <button
                 onClick={() => setActiveSubTab('my')}
-                className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 ${
+                className={`px-5 py-2.5 font-bold text-sm transition-all border-b-2 ${
                   activeSubTab === 'my' 
-                    ? 'text-[#45f3ff] border-[#45f3ff] font-bold' 
-                    : 'text-gray-400 border-transparent hover:text-white'
+                    ? 'text-[#ff6b00] border-[#ff6b00]' 
+                    : 'text-slate-500 border-transparent hover:text-[#0f172a]'
                 }`}
               >
                 My Groups
               </button>
               <button
                 onClick={() => setActiveSubTab('explore')}
-                className={`px-5 py-2.5 font-semibold text-sm transition-all border-b-2 ${
+                className={`px-5 py-2.5 font-bold text-sm transition-all border-b-2 ${
                   activeSubTab === 'explore' 
-                    ? 'text-[#45f3ff] border-[#45f3ff] font-bold' 
-                    : 'text-gray-400 border-transparent hover:text-white'
+                    ? 'text-[#ff6b00] border-[#ff6b00]' 
+                    : 'text-slate-500 border-transparent hover:text-[#0f172a]'
                 }`}
               >
                 Explore Public Directory
@@ -274,7 +272,7 @@ export const Groups: React.FC = () => {
 
             <button
               onClick={() => setIsCreatingGroup(true)}
-              className="bg-gradient-to-r from-[#45f3ff] to-[#6f42c1] hover:brightness-110 active:scale-95 text-white font-semibold text-xs rounded-xl py-2.5 px-4 flex items-center gap-1.5 transition-all shadow-glow"
+              className="bg-gradient-to-r from-[#ff6b00] to-orange-600 hover:brightness-110 active:scale-95 text-white font-extrabold text-xs rounded-xl py-2.5 px-4 flex items-center gap-1.5 transition-all shadow-glow"
             >
               <Plus className="h-4 w-4" />
               <span>New Group</span>
@@ -285,35 +283,35 @@ export const Groups: React.FC = () => {
           <div>
             {activeSubTab === 'my' ? (
               myGroups.length === 0 ? (
-                <div className="text-center py-16 border border-dashed border-gray-800 rounded-2xl bg-black/10">
-                  <FolderGit2 className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                  <p className="text-gray-400 text-sm">You haven't joined any groups yet.</p>
-                  <p className="text-gray-600 text-xs mt-1">Browse the Explore Directory tab to find and join study groups!</p>
+                <div className="text-center py-16 border border-dashed border-slate-300 rounded-2xl bg-white shadow-xs">
+                  <FolderGit2 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-600 font-bold text-sm">You haven't joined any groups yet.</p>
+                  <p className="text-slate-500 text-xs mt-1 font-medium">Browse the Explore Directory tab to find and join study groups!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {myGroups.map((g) => (
                     <div 
                       key={g.id}
-                      className="bg-[#1f2833]/40 border border-[#45f3ff]/10 hover:border-[#45f3ff]/20 rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all duration-300"
+                      className="bg-white border border-slate-200 hover:border-orange-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all duration-200"
                     >
                       <div>
-                        <h4 className="font-bold text-white text-base truncate">{g.name}</h4>
-                        <p className="text-xs text-gray-400 mt-1 truncate">Created by {g.creator.fullName}</p>
-                        <p className="text-xs text-gray-300 mt-3 line-clamp-2 h-8 italic">
+                        <h4 className="font-extrabold text-[#0f172a] text-base truncate">{g.name}</h4>
+                        <p className="text-xs text-slate-500 font-medium mt-1 truncate">Created by {g.creator.fullName}</p>
+                        <p className="text-xs text-slate-600 mt-3 line-clamp-2 h-8 italic font-medium">
                           {g.description || 'No description available.'}
                         </p>
                       </div>
                       <div className="flex gap-2 pt-4">
                         <button
                           onClick={() => handleViewGroupDetails(g)}
-                          className="flex-1 bg-[#1f2833] border border-gray-700 hover:border-gray-500 text-white rounded-xl py-2 px-3 text-xs font-semibold transition-all flex items-center justify-center gap-1"
+                          className="flex-1 bg-slate-100 border border-slate-300 hover:bg-slate-200 text-[#0f172a] rounded-xl py-2 px-3 text-xs font-bold transition-all flex items-center justify-center gap-1"
                         >
                           <span>Manage</span>
                         </button>
                         <button
                           onClick={() => navigate(`/chat?groupId=${g.id}`)}
-                          className="bg-gradient-to-r from-[#45f3ff]/10 to-[#6f42c1]/10 hover:from-[#45f3ff] hover:to-[#6f42c1] text-[#45f3ff] hover:text-white border border-[#45f3ff]/20 hover:border-transparent rounded-xl py-2 px-3 text-xs font-semibold transition-all flex items-center justify-center gap-1"
+                          className="bg-gradient-to-r from-[#ff6b00] to-orange-600 text-white rounded-xl py-2 px-3 text-xs font-extrabold transition-all flex items-center justify-center gap-1 shadow-glow"
                         >
                           <MessageSquare className="h-3.5 w-3.5" />
                           <span>Chat</span>
@@ -325,9 +323,9 @@ export const Groups: React.FC = () => {
               )
             ) : (
               publicGroups.length === 0 ? (
-                <div className="text-center py-16 border border-dashed border-gray-800 rounded-2xl bg-black/10">
-                  <FolderGit2 className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                  <p className="text-gray-400 text-sm">No public groups found.</p>
+                <div className="text-center py-16 border border-dashed border-slate-300 rounded-2xl bg-white shadow-xs">
+                  <FolderGit2 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-600 font-bold text-sm">No public groups found.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -336,12 +334,12 @@ export const Groups: React.FC = () => {
                     return (
                       <div 
                         key={g.id}
-                        className="bg-[#1f2833]/40 border border-[#45f3ff]/10 hover:border-[#45f3ff]/20 rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all duration-300"
+                        className="bg-white border border-slate-200 hover:border-orange-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all duration-200"
                       >
                         <div>
-                          <h4 className="font-bold text-white text-base truncate">{g.name}</h4>
-                          <p className="text-xs text-gray-400 mt-1 truncate">Created by {g.creator.fullName}</p>
-                          <p className="text-xs text-gray-300 mt-3 line-clamp-2 h-8 italic">
+                          <h4 className="font-extrabold text-[#0f172a] text-base truncate">{g.name}</h4>
+                          <p className="text-xs text-slate-500 font-medium mt-1 truncate">Created by {g.creator.fullName}</p>
+                          <p className="text-xs text-slate-600 mt-3 line-clamp-2 h-8 italic font-medium">
                             {g.description || 'No description available.'}
                           </p>
                         </div>
@@ -349,15 +347,15 @@ export const Groups: React.FC = () => {
                           {member ? (
                             <button
                               onClick={() => handleViewGroupDetails(g)}
-                              className="w-full bg-[#1f2833] border border-gray-700 text-gray-400 hover:text-white rounded-xl py-2 px-3 text-xs font-semibold flex items-center justify-center gap-1.5"
+                              className="w-full bg-slate-100 border border-slate-300 text-slate-700 font-bold rounded-xl py-2 px-3 text-xs flex items-center justify-center gap-1.5"
                             >
-                              <Check className="h-3.5 w-3.5 text-emerald-400" />
+                              <Check className="h-3.5 w-3.5 text-emerald-600" />
                               <span>Joined</span>
                             </button>
                           ) : (
                             <button
                               onClick={() => handleJoinGroup(g.id)}
-                              className="w-full bg-gradient-to-r from-[#45f3ff]/10 to-[#6f42c1]/10 hover:from-[#45f3ff] hover:to-[#6f42c1] text-[#45f3ff] hover:text-white border border-[#45f3ff]/20 hover:border-transparent rounded-xl py-2 px-3 text-xs font-semibold transition-all hover:shadow-glow"
+                              className="w-full bg-gradient-to-r from-[#ff6b00] to-orange-600 text-white rounded-xl py-2 px-3 text-xs font-extrabold transition-all shadow-glow"
                             >
                               Join Group
                             </button>
@@ -375,46 +373,46 @@ export const Groups: React.FC = () => {
 
       {/* Create Group Modal Overlay */}
       {isCreatingGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-[#1f2833] border border-[#45f3ff]/20 rounded-2xl p-6 shadow-glow-lg animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-white mb-1">Create Learning Group</h3>
-            <p className="text-xs text-gray-400 mb-4">Establish a study room to coordinate group learning and schedule web sessions.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white border border-slate-300 rounded-2xl p-6 shadow-2xl">
+            <h3 className="text-lg font-extrabold text-[#0f172a] mb-1">Create Learning Group</h3>
+            <p className="text-xs text-slate-500 font-medium mb-4">Establish a study room to coordinate group learning and schedule web sessions.</p>
 
             <form onSubmit={handleCreateGroup} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Group Name</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Group Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. EECS Algorithms Group"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
-                  className="w-full bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 px-4 outline-none text-sm"
+                  className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 px-4 outline-none text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Description</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description</label>
                 <textarea
                   rows={3}
                   placeholder="Goals, topics discussed, or study schedules..."
                   value={groupDesc}
                   onChange={(e) => setGroupDesc(e.target.value)}
-                  className="w-full bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 px-4 outline-none text-sm resize-none"
+                  className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 px-4 outline-none text-sm resize-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsCreatingGroup(false)}
-                  className="bg-transparent border border-gray-700 text-gray-400 hover:text-white rounded-xl py-2.5 px-5 text-sm transition-all"
+                  className="bg-slate-100 border border-slate-300 text-slate-700 font-bold hover:bg-slate-200 rounded-xl py-2.5 px-5 text-sm transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-[#45f3ff] to-[#6f42c1] text-white font-semibold rounded-xl py-2.5 px-6 text-sm hover:brightness-110 active:scale-95 transition-all shadow-glow"
+                  className="bg-gradient-to-r from-[#ff6b00] to-orange-600 text-white font-extrabold rounded-xl py-2.5 px-6 text-sm hover:brightness-110 active:scale-95 transition-all shadow-glow"
                 >
                   Create Group
                 </button>

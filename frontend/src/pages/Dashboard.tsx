@@ -67,64 +67,64 @@ export const Dashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#45f3ff]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff6b00]"></div>
       </div>
     );
   }
 
-  // Prepping chart data
+  // Prepping chart data with Orange and Navy theme
   const chartData = [
-    { name: 'Learning Hours', value: analytics?.learningHours || 0, color: '#45f3ff' },
-    { name: 'Teaching Hours', value: analytics?.teachingHours || 0, color: '#6f42c1' },
-    { name: 'Classes Attended', value: analytics?.classesAttendedCount || 0, color: '#ffc107' },
-    { name: 'Classes Taught', value: analytics?.classesConductedCount || 0, color: '#20c997' },
+    { name: 'Learning Hours', value: analytics?.learningHours || 0, color: '#ff6b00' },
+    { name: 'Teaching Hours', value: analytics?.teachingHours || 0, color: '#0f172a' },
+    { name: 'Classes Attended', value: analytics?.classesAttendedCount || 0, color: '#d97706' },
+    { name: 'Classes Taught', value: analytics?.classesConductedCount || 0, color: '#059669' },
   ];
 
   return (
     <div className="space-y-8 pb-12">
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center justify-between shadow-xs">
           <div>
-            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Level Progress</div>
-            <div className="text-3xl font-extrabold text-white mt-2">Lvl {analytics?.level}</div>
-            <div className="text-xs text-gray-500 mt-1">{analytics?.xp} Total XP</div>
+            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider">Level Progress</div>
+            <div className="text-3xl font-black text-[#0f172a] mt-2">Lvl {analytics?.level}</div>
+            <div className="text-xs text-slate-500 font-medium mt-1">{analytics?.xp} Total XP</div>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-[#45f3ff]/20 to-[#45f3ff]/5 flex items-center justify-center border border-[#45f3ff]/30">
-            <Award className="h-6 w-6 text-[#45f3ff]" />
+          <div className="h-12 w-12 rounded-xl bg-orange-50 flex items-center justify-center border border-orange-200">
+            <Award className="h-6 w-6 text-[#ff6b00]" />
           </div>
         </div>
 
-        <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center justify-between shadow-xs">
           <div>
-            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Reputation</div>
-            <div className="text-3xl font-extrabold text-white mt-2">{analytics?.reputation}%</div>
-            <div className="text-xs text-gray-500 mt-1">Peer feedback score</div>
+            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider">Reputation</div>
+            <div className="text-3xl font-black text-[#0f172a] mt-2">{analytics?.reputation}%</div>
+            <div className="text-xs text-slate-500 font-medium mt-1">Peer feedback score</div>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-[#20c997]/20 to-[#20c997]/5 flex items-center justify-center border border-[#20c997]/30">
-            <ThumbsUp className="h-6 w-6 text-[#20c997]" />
+          <div className="h-12 w-12 rounded-xl bg-emerald-50 flex items-center justify-center border border-emerald-200">
+            <ThumbsUp className="h-6 w-6 text-emerald-600" />
           </div>
         </div>
 
-        <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center justify-between shadow-xs">
           <div>
-            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Active Pacts</div>
-            <div className="text-3xl font-extrabold text-white mt-2">{analytics?.pactsActive} Active</div>
-            <div className="text-xs text-gray-500 mt-1">{analytics?.pactsCompleted} Completed swaps</div>
+            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider">Active Pacts</div>
+            <div className="text-3xl font-black text-[#0f172a] mt-2">{analytics?.pactsActive} Active</div>
+            <div className="text-xs text-slate-500 font-medium mt-1">{analytics?.pactsCompleted} Completed swaps</div>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-[#6f42c1]/20 to-[#6f42c1]/5 flex items-center justify-center border border-[#6f42c1]/30">
-            <FolderCheck className="h-6 w-6 text-[#6f42c1]" />
+          <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200">
+            <FolderCheck className="h-6 w-6 text-[#0f172a]" />
           </div>
         </div>
 
-        <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center justify-between shadow-xs">
           <div>
-            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Learning Streak</div>
-            <div className="text-3xl font-extrabold text-white mt-2">{analytics?.streak} Days</div>
-            <div className="text-xs text-gray-500 mt-1">Keep it up!</div>
+            <div className="text-slate-500 text-xs font-bold uppercase tracking-wider">Learning Streak</div>
+            <div className="text-3xl font-black text-[#0f172a] mt-2">{analytics?.streak} Days</div>
+            <div className="text-xs text-slate-500 font-medium mt-1">Keep it up!</div>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-orange-500/20 to-orange-500/5 flex items-center justify-center border border-orange-500/30">
-            <Flame className="h-6 w-6 text-orange-500" />
+          <div className="h-12 w-12 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-200">
+            <Flame className="h-6 w-6 text-amber-600" />
           </div>
         </div>
       </div>
@@ -134,61 +134,61 @@ export const Dashboard: React.FC = () => {
         
         {/* Left Col: Match Finder (Span 2) */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 shadow-xl">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-white tracking-wide">Top Peer Matches</h3>
-              <span className="text-xs text-gray-400">Based on your learning preferences</span>
+              <h3 className="text-lg font-bold text-[#0f172a] tracking-wide">Top Peer Matches</h3>
+              <span className="text-xs font-semibold text-slate-500">Based on your learning preferences</span>
             </div>
 
             {matches.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-gray-800 rounded-xl bg-black/10">
-                <BookOpen className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 text-sm">No matches found yet.</p>
-                <p className="text-gray-600 text-xs mt-1">Try adding more known or wanted skills to your profile!</p>
+              <div className="text-center py-12 border border-dashed border-slate-300 rounded-xl bg-slate-50">
+                <BookOpen className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600 font-semibold text-sm">No matches found yet.</p>
+                <p className="text-slate-500 text-xs mt-1">Try adding more known or wanted skills to your profile!</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {matches.map((match) => (
                   <div 
                     key={match.peer.id} 
-                    className="p-5 bg-[#0b0c10]/80 rounded-xl border border-gray-800 hover:border-[#45f3ff]/30 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                    className="p-5 bg-slate-50 rounded-xl border border-slate-200 hover:border-orange-300 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 group"
                   >
                     {/* Peer info */}
                     <div className="space-y-3 flex-1">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#45f3ff]/20 to-[#6f42c1]/20 border border-[#45f3ff]/20 flex items-center justify-center font-bold text-white text-lg">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-bold text-white text-lg shadow-glow">
                           {match.peer.fullName.charAt(0)}
                         </div>
                         <div>
-                          <div className="font-semibold text-white flex items-center gap-2 text-base">
+                          <div className="font-extrabold text-[#0f172a] flex items-center gap-2 text-base">
                             {match.peer.fullName}
-                            <span className="bg-[#45f3ff]/15 text-[#45f3ff] text-xs font-semibold px-2 py-0.5 rounded-full border border-[#45f3ff]/20">
+                            <span className="bg-orange-100 text-[#ff6b00] text-xs font-extrabold px-2 py-0.5 rounded-full border border-orange-200">
                               {match.matchingScore}% Match
                             </span>
                           </div>
-                          <div className="text-xs text-gray-400">{match.peer.college} • {match.peer.department}</div>
+                          <div className="text-xs text-slate-500 font-medium">{match.peer.college} • {match.peer.department}</div>
                         </div>
                       </div>
                       
                       {match.peer.bio && (
-                        <p className="text-sm text-gray-400 line-clamp-2 italic">"{match.peer.bio}"</p>
+                        <p className="text-sm text-slate-600 line-clamp-2 italic font-medium">"{match.peer.bio}"</p>
                       )}
 
                       {/* Skill chips */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
                         <div>
-                          <span className="text-xs font-bold text-teal-400 uppercase tracking-wider block mb-1">Teaches You:</span>
+                          <span className="text-xs font-extrabold text-emerald-700 uppercase tracking-wider block mb-1">Teaches You:</span>
                           <div className="flex flex-wrap gap-1.5">
                             {match.skillsTeachedByPeer.map(s => (
-                              <span key={s.name} className="bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xs px-2 py-0.5 rounded-lg font-medium">{s.name}</span>
+                              <span key={s.name} className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-0.5 rounded-lg font-bold">{s.name}</span>
                             ))}
                           </div>
                         </div>
                         <div>
-                          <span className="text-xs font-bold text-[#6f42c1] uppercase tracking-wider block mb-1">Wants from You:</span>
+                          <span className="text-xs font-extrabold text-[#0f172a] uppercase tracking-wider block mb-1">Wants from You:</span>
                           <div className="flex flex-wrap gap-1.5">
                             {match.skillsWantedByPeer.map(s => (
-                              <span key={s.name} className="bg-[#6f42c1]/10 text-violet-400 border border-[#6f42c1]/20 text-xs px-2 py-0.5 rounded-lg font-medium">{s.name}</span>
+                              <span key={s.name} className="bg-slate-200 text-[#0f172a] border border-slate-300 text-xs px-2.5 py-0.5 rounded-lg font-bold">{s.name}</span>
                             ))}
                           </div>
                         </div>
@@ -200,7 +200,7 @@ export const Dashboard: React.FC = () => {
                       {sentRequests.includes(match.peer.id) ? (
                         <button
                           disabled
-                          className="bg-gray-800 text-gray-500 border border-gray-700 text-sm font-semibold rounded-xl py-2 px-4 flex items-center gap-1.5"
+                          className="bg-slate-200 text-slate-500 border border-slate-300 text-sm font-bold rounded-xl py-2 px-4 flex items-center gap-1.5"
                         >
                           <Check className="h-4 w-4" />
                           <span>Sent</span>
@@ -208,7 +208,7 @@ export const Dashboard: React.FC = () => {
                       ) : (
                         <button
                           onClick={() => handleConnect(match.peer.id)}
-                          className="bg-gradient-to-r from-[#45f3ff]/10 to-[#6f42c1]/10 hover:from-[#45f3ff] hover:to-[#6f42c1] text-[#45f3ff] hover:text-white border border-[#45f3ff]/30 hover:border-transparent text-sm font-semibold rounded-xl py-2.5 px-4 transition-all duration-300 flex items-center gap-1.5 hover:shadow-glow"
+                          className="bg-gradient-to-r from-[#ff6b00] to-orange-600 hover:brightness-110 text-white border border-transparent text-sm font-extrabold rounded-xl py-2.5 px-4 transition-all duration-200 flex items-center gap-1.5 shadow-glow"
                         >
                           <Plus className="h-4 w-4" />
                           <span>Connect</span>
@@ -222,21 +222,21 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Stats chart summary */}
-          <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 shadow-xl">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
             <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="h-5 w-5 text-[#45f3ff]" />
-              <h3 className="text-lg font-bold text-white tracking-wide">Activity Performance</h3>
+              <TrendingUp className="h-5 w-5 text-[#ff6b00]" />
+              <h3 className="text-lg font-bold text-[#0f172a] tracking-wide">Activity Performance</h3>
             </div>
             
             <div className="h-60">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#6b7280" fontSize={11} tickLine={false} />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#1f2833', border: '1px solid rgba(69,243,255,0.2)', borderRadius: '12px' }}
-                    labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    itemStyle={{ color: '#45f3ff' }}
+                    contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                    labelStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+                    itemStyle={{ color: '#ff6b00' }}
                   />
                   <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={45}>
                     {chartData.map((entry, index) => (
@@ -251,38 +251,38 @@ export const Dashboard: React.FC = () => {
 
         {/* Right Col: Leaderboard */}
         <div className="space-y-6">
-          <div className="bg-[#1f2833]/40 border border-[#45f3ff]/10 rounded-2xl p-6 shadow-xl flex flex-col h-full">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col h-full">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-white tracking-wide">Top Swappers</h3>
-              <span className="text-xs text-[#45f3ff] font-semibold">XP Leaderboard</span>
+              <h3 className="text-lg font-bold text-[#0f172a] tracking-wide">Top Swappers</h3>
+              <span className="text-xs text-[#ff6b00] font-extrabold">XP Leaderboard</span>
             </div>
 
-            <div className="space-y-4 flex-1">
+            <div className="space-y-3 flex-1">
               {leaderboard.map((u, i) => {
                 let medalColor = '';
-                if (i === 0) medalColor = 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-                else if (i === 1) medalColor = 'text-gray-400 bg-gray-400/10 border-gray-400/20';
-                else if (i === 2) medalColor = 'text-amber-600 bg-amber-600/10 border-amber-600/20';
-                else medalColor = 'text-gray-500 bg-gray-900 border-gray-800';
+                if (i === 0) medalColor = 'text-amber-600 bg-amber-50 border-amber-200';
+                else if (i === 1) medalColor = 'text-slate-600 bg-slate-100 border-slate-200';
+                else if (i === 2) medalColor = 'text-amber-800 bg-amber-100 border-amber-300';
+                else medalColor = 'text-slate-500 bg-slate-50 border-slate-200';
 
                 return (
                   <div 
                     key={u.id}
-                    className="flex items-center justify-between p-3 rounded-xl border border-gray-800 bg-[#0b0c10]/40 hover:border-[#45f3ff]/20 transition-all duration-300"
+                    className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-orange-300 transition-all duration-200"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`h-8 w-8 rounded-lg border flex items-center justify-center font-bold text-sm shrink-0 ${medalColor}`}>
+                      <div className={`h-8 w-8 rounded-lg border flex items-center justify-center font-bold text-xs shrink-0 ${medalColor}`}>
                         {i + 1}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-white text-sm truncate">{u.fullName}</div>
-                        <div className="text-xs text-gray-500 truncate">{u.college}</div>
+                        <div className="font-bold text-[#0f172a] text-sm truncate">{u.fullName}</div>
+                        <div className="text-xs text-slate-500 font-medium truncate">{u.college}</div>
                       </div>
                     </div>
                     
                     <div className="text-right shrink-0">
-                      <div className="text-sm font-bold text-[#45f3ff]">{u.xp} XP</div>
-                      <div className="text-[10px] text-gray-500">Lvl {u.level}</div>
+                      <div className="text-sm font-extrabold text-[#ff6b00]">{u.xp} XP</div>
+                      <div className="text-[10px] text-slate-500 font-semibold">Lvl {u.level}</div>
                     </div>
                   </div>
                 );

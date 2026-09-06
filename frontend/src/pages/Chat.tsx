@@ -110,20 +110,16 @@ export const Chat: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Connect WebSocket if not connected
     wsService.connect();
 
     // 1. Subscribe to direct private messages
     const privateMsgSub = wsService.subscribeToPrivateMessages(user.id, (newMsg) => {
-      // Check if message belongs to currently selected peer chat
       if (selectedPeer && (newMsg.sender.id === selectedPeer.id || newMsg.recipient?.id === selectedPeer.id)) {
         setMessages(prev => [...prev, newMsg]);
-        // Mark as read immediately on server if open
         if (newMsg.sender.id === selectedPeer.id) {
           api.chat.markAsRead(selectedPeer.id);
         }
       } else {
-        // Increment unread count in sidebar
         const senderId = newMsg.sender.id;
         setUnreadCounts(prev => ({
           ...prev,
@@ -162,16 +158,13 @@ export const Chat: React.FC = () => {
   useEffect(() => {
     if (!selectedGroup || !user) return;
 
-    // Subscribe to group topic
     const groupSub = wsService.subscribeToGroupMessages(selectedGroup.id, (newMsg) => {
-      // Don't duplicate sender's own broadcast if client already pushed it (but wait, STOMP broadcasts to all so we overwrite)
       setMessages(prev => {
         if (prev.find(m => m.id === newMsg.id)) return prev;
         return [...prev, newMsg];
       });
     });
 
-    // Subscribe to group typing indicator
     const groupTypingSub = wsService.subscribeToGroupTyping(selectedGroup.id, (data) => {
       if (data.senderId !== user.id) {
         setTypingUsers(prev => ({
@@ -194,7 +187,6 @@ export const Chat: React.FC = () => {
     setMessages([]);
     setTypingText('');
     
-    // Clear unreads
     setUnreadCounts(prev => ({ ...prev, [peer.id]: 0 }));
     
     try {
@@ -249,7 +241,6 @@ export const Chat: React.FC = () => {
       wsService.sendGroupMessage(user.id, selectedGroup.id, messageText.trim());
     }
 
-    // Stop typing immediately on send
     const recipientId = selectedPeer ? selectedPeer.id : null;
     const groupId = selectedGroup ? selectedGroup.id : null;
     clearTimeout(typingTimeoutRef.current);
@@ -265,18 +256,18 @@ export const Chat: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-10rem)] bg-[#1f2833]/20 border border-[#45f3ff]/10 rounded-2xl flex overflow-hidden shadow-2xl">
+    <div className="h-[calc(100vh-10rem)] bg-white border border-slate-200 rounded-2xl flex overflow-hidden shadow-sm">
       
       {/* Sidebar Threads */}
-      <aside className="w-80 bg-[#1f2833]/40 border-r border-[#45f3ff]/10 flex flex-col">
+      <aside className="w-80 bg-white border-r border-slate-200 flex flex-col">
         {/* Toggle between Peer Chat and Group Chat */}
-        <div className="flex border-b border-[#45f3ff]/10 shrink-0">
+        <div className="flex border-b border-slate-200 shrink-0">
           <button
             onClick={() => setChatType('direct')}
-            className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-all ${
+            className={`flex-1 py-3 text-xs font-bold flex items-center justify-center gap-2 border-b-2 transition-all ${
               chatType === 'direct'
-                ? 'text-[#45f3ff] border-[#45f3ff] bg-[#0b0c10]/20'
-                : 'text-gray-400 border-transparent hover:text-white'
+                ? 'text-[#ff6b00] border-[#ff6b00] bg-orange-50/50'
+                : 'text-slate-500 border-transparent hover:text-[#0f172a]'
             }`}
           >
             <MessageSquare className="h-4 w-4" />
@@ -284,10 +275,10 @@ export const Chat: React.FC = () => {
           </button>
           <button
             onClick={() => setChatType('group')}
-            className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 border-b-2 transition-all ${
+            className={`flex-1 py-3 text-xs font-bold flex items-center justify-center gap-2 border-b-2 transition-all ${
               chatType === 'group'
-                ? 'text-[#45f3ff] border-[#45f3ff] bg-[#0b0c10]/20'
-                : 'text-gray-400 border-transparent hover:text-white'
+                ? 'text-[#ff6b00] border-[#ff6b00] bg-orange-50/50'
+                : 'text-slate-500 border-transparent hover:text-[#0f172a]'
             }`}
           >
             <Users className="h-4 w-4" />
@@ -299,7 +290,7 @@ export const Chat: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {chatType === 'direct' ? (
             peers.length === 0 ? (
-              <div className="text-center text-gray-500 text-xs py-8">No connections found. Connect with peers first!</div>
+              <div className="text-center text-slate-400 text-xs py-8 font-medium">No connections found. Connect with peers first!</div>
             ) : (
               peers.map((peer) => {
                 const isSelected = selectedPeer?.id === peer.id;
@@ -311,26 +302,26 @@ export const Chat: React.FC = () => {
                     onClick={() => handleSelectPeer(peer)}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       isSelected 
-                        ? 'bg-gradient-to-r from-[#45f3ff]/20 to-[#6f42c1]/20 border border-[#45f3ff]/30 text-white' 
-                        : 'hover:bg-white/5 text-gray-400 hover:text-gray-200'
+                        ? 'bg-orange-50 border border-orange-200 text-[#0f172a]' 
+                        : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <div className="h-10 w-10 rounded-lg bg-[#0b0c10] border border-gray-800 flex items-center justify-center font-bold text-white text-base">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-extrabold text-white text-base shadow-glow">
                         {peer.fullName.charAt(0)}
                       </div>
-                      <Circle className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full fill-current ${isOnline ? 'text-emerald-500' : 'text-gray-600'}`} />
+                      <Circle className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full fill-current ${isOnline ? 'text-emerald-500' : 'text-slate-400'}`} />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
-                      <div className="font-semibold truncate text-sm text-white flex items-center justify-between">
+                      <div className="font-extrabold truncate text-sm text-[#0f172a] flex items-center justify-between">
                         <span>{peer.fullName}</span>
                         {unread > 0 && (
-                          <span className="bg-[#45f3ff] text-black text-[10px] font-bold h-4 min-w-4 px-1 rounded-full flex items-center justify-center animate-pulse">
+                          <span className="bg-[#ff6b00] text-white text-[10px] font-bold h-4 min-w-4 px-1 rounded-full flex items-center justify-center animate-pulse">
                             {unread}
                           </span>
                         )}
                       </div>
-                      <div className="text-[10px] text-gray-500 truncate mt-0.5">{peer.college}</div>
+                      <div className="text-[10px] text-slate-500 font-medium truncate mt-0.5">{peer.college}</div>
                     </div>
                   </button>
                 );
@@ -338,7 +329,7 @@ export const Chat: React.FC = () => {
             )
           ) : (
             groups.length === 0 ? (
-              <div className="text-center text-gray-500 text-xs py-8 font-medium">You haven't joined any groups yet.</div>
+              <div className="text-center text-slate-400 text-xs py-8 font-medium">You haven't joined any groups yet.</div>
             ) : (
               groups.map((grp) => {
                 const isSelected = selectedGroup?.id === grp.id;
@@ -348,16 +339,16 @@ export const Chat: React.FC = () => {
                     onClick={() => handleSelectGroup(grp)}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       isSelected 
-                        ? 'bg-gradient-to-r from-[#45f3ff]/20 to-[#6f42c1]/20 border border-[#45f3ff]/30 text-white' 
-                        : 'hover:bg-white/5 text-gray-400 hover:text-gray-200'
+                        ? 'bg-orange-50 border border-orange-200 text-[#0f172a]' 
+                        : 'hover:bg-slate-50 text-slate-600'
                     }`}
                   >
-                    <div className="h-10 w-10 rounded-lg bg-[#0b0c10] border border-gray-800 flex items-center justify-center font-bold text-[#45f3ff] text-base shrink-0">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-extrabold text-[#ff6b00] text-base shrink-0">
                       #
                     </div>
                     <div className="min-w-0 flex-1 text-left">
-                      <div className="font-semibold truncate text-sm text-white">{grp.name}</div>
-                      <div className="text-[10px] text-gray-500 truncate mt-0.5">{grp.description || 'Study Room'}</div>
+                      <div className="font-extrabold truncate text-sm text-[#0f172a]">{grp.name}</div>
+                      <div className="text-[10px] text-slate-500 font-medium truncate mt-0.5">{grp.description || 'Study Room'}</div>
                     </div>
                   </button>
                 );
@@ -368,23 +359,23 @@ export const Chat: React.FC = () => {
       </aside>
 
       {/* Right Feed Chat */}
-      <main className="flex-1 flex flex-col bg-[#0b0c10]/40">
+      <main className="flex-1 flex flex-col bg-[#f8fafc]">
         {selectedPeer || selectedGroup ? (
           <>
             {/* Thread Header */}
-            <div className="h-16 border-b border-[#45f3ff]/10 flex items-center justify-between px-6 bg-[#1f2833]/20 shrink-0">
+            <div className="h-16 border-b border-slate-200 flex items-center justify-between px-6 bg-white shrink-0">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#45f3ff]/20 to-[#6f42c1]/20 border border-[#45f3ff]/20 flex items-center justify-center font-bold text-white text-base">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-extrabold text-white text-base shadow-glow">
                   {selectedPeer ? selectedPeer.fullName.charAt(0) : '#'}
                 </div>
                 <div>
-                  <h4 className="font-bold text-white text-sm">
+                  <h4 className="font-extrabold text-[#0f172a] text-sm">
                     {selectedPeer ? selectedPeer.fullName : selectedGroup?.name}
                   </h4>
-                  <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5">
+                  <p className="text-[10px] text-slate-500 font-semibold flex items-center gap-1 mt-0.5">
                     {selectedPeer ? (
                       <>
-                        <Circle className={`h-2 w-2 fill-current ${onlineUsers[selectedPeer.id] ? 'text-emerald-500' : 'text-gray-600'}`} />
+                        <Circle className={`h-2 w-2 fill-current ${onlineUsers[selectedPeer.id] ? 'text-emerald-500' : 'text-slate-400'}`} />
                         <span>{onlineUsers[selectedPeer.id] ? 'Online' : 'Offline'}</span>
                       </>
                     ) : (
@@ -398,10 +389,10 @@ export const Chat: React.FC = () => {
             {/* Messages Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-gray-600">
-                  <MessageSquare className="h-10 w-10 text-gray-800 mb-2" />
-                  <p className="text-xs">No message history.</p>
-                  <p className="text-[10px] text-gray-700">Type a message below to start swapping knowledge!</p>
+                <div className="h-full flex flex-col items-center justify-center text-center text-slate-400">
+                  <MessageSquare className="h-10 w-10 text-slate-300 mb-2" />
+                  <p className="text-xs font-bold text-slate-600">No message history.</p>
+                  <p className="text-[10px] text-slate-400">Type a message below to start swapping knowledge!</p>
                 </div>
               ) : (
                 messages.map((msg) => {
@@ -413,7 +404,7 @@ export const Chat: React.FC = () => {
                     >
                       {/* Peer avatar in group chat */}
                       {!isOwnMessage && selectedGroup && (
-                        <div className="h-8 w-8 rounded-lg bg-[#1f2833] flex items-center justify-center font-bold text-white text-xs shrink-0 mt-1 border border-gray-800">
+                        <div className="h-8 w-8 rounded-lg bg-slate-200 flex items-center justify-center font-bold text-[#0f172a] text-xs shrink-0 mt-1">
                           {msg.sender.fullName.charAt(0)}
                         </div>
                       )}
@@ -421,16 +412,16 @@ export const Chat: React.FC = () => {
                       <div>
                         {/* Sender name for group chat */}
                         {!isOwnMessage && selectedGroup && (
-                          <div className="text-[10px] text-gray-500 mb-1 ml-1 font-semibold">{msg.sender.fullName}</div>
+                          <div className="text-[10px] text-slate-500 mb-1 ml-1 font-bold">{msg.sender.fullName}</div>
                         )}
 
                         <div className={`p-3.5 rounded-2xl text-sm leading-relaxed ${
                           isOwnMessage 
-                            ? 'bg-gradient-to-tr from-[#6f42c1] to-[#45f3ff] text-white rounded-tr-none shadow-glow'
-                            : 'bg-[#1f2833] text-gray-100 rounded-tl-none border border-gray-800'
+                            ? 'bg-gradient-to-r from-[#ff6b00] to-orange-600 text-white rounded-tr-none shadow-glow font-medium'
+                            : 'bg-white text-slate-800 rounded-tl-none border border-slate-200 shadow-xs font-medium'
                         }`}>
                           <p>{msg.content}</p>
-                          <div className={`text-[9px] mt-1.5 flex items-center justify-end gap-1 ${isOwnMessage ? 'text-white/70' : 'text-gray-500'}`}>
+                          <div className={`text-[9px] mt-1.5 flex items-center justify-end gap-1 ${isOwnMessage ? 'text-white/80' : 'text-slate-400'}`}>
                             <Clock className="h-3 w-3" />
                             <span>{formatMessageTime(msg.createdAt)}</span>
                           </div>
@@ -443,8 +434,8 @@ export const Chat: React.FC = () => {
 
               {/* Typing Indicator */}
               {typingText && (
-                <div className="flex items-center gap-2 text-xs text-gray-500 ml-2 animate-pulse">
-                  <Circle className="h-1.5 w-1.5 fill-emerald-400 text-emerald-400" />
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-bold ml-2 animate-pulse">
+                  <Circle className="h-1.5 w-1.5 fill-emerald-500 text-emerald-500" />
                   <span>{typingText}</span>
                 </div>
               )}
@@ -453,18 +444,18 @@ export const Chat: React.FC = () => {
             </div>
 
             {/* Message input */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-[#45f3ff]/10 bg-[#1f2833]/15 flex gap-3 shrink-0">
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white flex gap-3 shrink-0">
               <input
                 type="text"
                 required
                 placeholder="Type your message here..."
                 value={messageText}
                 onChange={handleInputChange}
-                className="flex-1 bg-[#0b0c10]/60 border border-gray-700 focus:border-[#45f3ff] text-white rounded-xl py-3 px-4 outline-none text-sm"
+                className="flex-1 bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 px-4 outline-none text-sm"
               />
               <button
                 type="submit"
-                className="h-12 w-12 bg-gradient-to-tr from-[#45f3ff] to-[#6f42c1] hover:brightness-110 active:scale-95 text-white rounded-xl flex items-center justify-center transition-all shadow-glow shrink-0"
+                className="h-12 w-12 bg-gradient-to-r from-[#ff6b00] to-orange-600 hover:brightness-110 active:scale-95 text-white rounded-xl flex items-center justify-center transition-all shadow-glow shrink-0"
               >
                 <Send className="h-5 w-5" />
               </button>
@@ -472,11 +463,11 @@ export const Chat: React.FC = () => {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <div className="h-16 w-16 bg-[#1f2833] rounded-2xl flex items-center justify-center mb-4 border border-[#45f3ff]/10">
-              <MessageSquare className="h-8 w-8 text-[#45f3ff]" />
+            <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center mb-4 border border-slate-200 shadow-xs">
+              <MessageSquare className="h-8 w-8 text-[#ff6b00]" />
             </div>
-            <h3 className="text-lg font-bold text-white tracking-wide">Your Conversations</h3>
-            <p className="text-xs text-gray-500 mt-1 max-w-sm">
+            <h3 className="text-lg font-extrabold text-[#0f172a] tracking-wide">Your Conversations</h3>
+            <p className="text-xs text-slate-500 font-medium mt-1 max-w-sm">
               Select a peer connection or learning group chat from the sidebar, or connect with matches to start swap chats!
             </p>
           </div>
