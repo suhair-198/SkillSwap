@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { SkillPactDTO } from '../services/types';
 import { 
   Handshake, 
-  BookOpen, 
   Target, 
   Check, 
   X, 
@@ -13,17 +12,35 @@ import {
   Clock, 
   Sparkles,
   Zap,
-  TrendingUp
+  TrendingUp,
+  BookOpen,
+  Users
 } from 'lucide-react';
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const styles: Record<string, string> = {
+    ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    ACCEPTED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    COMPLETED: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    CANCELLED: 'bg-red-500/10 text-red-400 border-red-500/20',
+    REQUESTED: 'bg-[#ff6b00]/10 text-[#ff6b00] border-[#ff6b00]/20',
+  };
+  const labels: Record<string, string> = {
+    ACTIVE: 'Active', ACCEPTED: 'Ready', COMPLETED: 'Completed', CANCELLED: 'Cancelled', REQUESTED: 'Pending'
+  };
+  return (
+    <span className={`mono-tag px-2 py-0.5 rounded-full border ${styles[status] || styles.REQUESTED}`}>
+      {labels[status] || status}
+    </span>
+  );
+};
 
 export const Pacts: React.FC = () => {
   const { user } = useAuth();
   const [pacts, setPacts] = useState<SkillPactDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPacts();
-  }, []);
+  useEffect(() => { fetchPacts(); }, []);
 
   const fetchPacts = async () => {
     try {
@@ -37,306 +54,257 @@ export const Pacts: React.FC = () => {
   };
 
   const handleAccept = async (id: string) => {
-    try {
-      await api.pacts.accept(id);
-      await fetchPacts();
-      alert('Skill Pact accepted!');
-    } catch (err) {
-      alert('Failed to accept Skill Pact');
-    }
+    try { await api.pacts.accept(id); await fetchPacts(); }
+    catch (err: any) { alert(`Failed to accept pact: ${err.message}`); }
   };
 
   const handleDecline = async (id: string) => {
-    try {
-      await api.pacts.decline(id);
-      await fetchPacts();
-      alert('Skill Pact declined');
-    } catch (err) {
-      alert('Failed to decline Skill Pact');
-    }
+    try { await api.pacts.decline(id); await fetchPacts(); }
+    catch (err: any) { alert(`Failed to decline pact: ${err.message}`); }
   };
 
   const handleLogSession = async (id: string) => {
-    try {
-      await api.pacts.logSession(id);
-      await fetchPacts();
-      alert('Study session logged! XP increased.');
-    } catch (err) {
-      alert('Failed to log session');
-    }
+    try { await api.pacts.logSession(id); await fetchPacts(); }
+    catch (err: any) { alert(`Failed to log session: ${err.message}`); }
   };
 
   const handleComplete = async (id: string) => {
-    if (!confirm('Are you sure you want to mark this pact as completed? Both users will get completion rewards.')) return;
-    try {
-      await api.pacts.complete(id);
-      await fetchPacts();
-      alert('Skill Pact completed! Congratulations!');
-    } catch (err) {
-      alert('Failed to complete Skill Pact');
-    }
+    if (!confirm('Mark this pact as completed?')) return;
+    try { await api.pacts.complete(id); await fetchPacts(); }
+    catch (err: any) { alert(`Failed to complete pact: ${err.message}`); }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff6b00]"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center animate-glow-pulse">
+            <Zap className="w-5 h-5 text-white" />
+          </div>
+          <span className="mono-tag text-[#ff6b00]">Loading Pacts...</span>
+        </div>
       </div>
     );
   }
 
-  // Segmenting pacts
   const activePacts = pacts.filter(p => p.status === 'ACTIVE' || p.status === 'ACCEPTED');
   const pendingPacts = pacts.filter(p => p.status === 'REQUESTED');
   const completedPacts = pacts.filter(p => p.status === 'COMPLETED' || p.status === 'CANCELLED');
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-0.5 rounded-full font-bold">Active</span>;
-      case 'ACCEPTED':
-        return <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-0.5 rounded-full font-bold">Ready</span>;
-      case 'COMPLETED':
-        return <span className="bg-amber-50 text-amber-800 border border-amber-200 text-xs px-2.5 py-0.5 rounded-full font-bold">Completed</span>;
-      case 'CANCELLED':
-        return <span className="bg-red-50 text-red-700 border border-red-200 text-xs px-2.5 py-0.5 rounded-full font-bold">Cancelled</span>;
-      default:
-        return <span className="bg-orange-50 text-[#ff6b00] border border-orange-200 text-xs px-2.5 py-0.5 rounded-full font-bold">Pending Request</span>;
-    }
+  const PactCard = ({ p }: { p: SkillPactDTO }) => {
+    const isUserA = p.userA.id === user?.id;
+    const otherUser = isUserA ? p.userB : p.userA;
+    const myTeachSkill = isUserA ? p.skillA : p.skillB;
+    const myLearnSkill = isUserA ? p.skillB : p.skillA;
+    const isPending = p.status === 'REQUESTED';
+    const isActive = p.status === 'ACTIVE' || p.status === 'ACCEPTED';
+
+    return (
+      <div className="bg-[#0a1020] border border-[#1a2540] rounded-2xl p-5 hover:border-[#ff6b00]/30 transition-all duration-200 flex flex-col gap-4 card-offset-sm">
+        {/* Peer Info */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center font-bold text-white text-sm shadow-orange-glow-sm flex-shrink-0">
+              {otherUser.fullName.charAt(0)}
+            </div>
+            <div>
+              <div className="font-bold text-white text-sm">{otherUser.fullName}</div>
+              <div className="text-xs text-slate-500">{otherUser.college || 'SkillSwap'}</div>
+            </div>
+          </div>
+          <StatusBadge status={p.status} />
+        </div>
+
+        {/* Skill Exchange */}
+        <div className="grid grid-cols-2 gap-3 p-3 bg-[#111827] border border-[#1a2540] rounded-xl">
+          <div>
+            <div className="mono-tag text-slate-500 mb-1">YOU TEACH</div>
+            <div className="flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-emerald-400 font-bold text-sm">{myTeachSkill.name}</span>
+            </div>
+          </div>
+          <div>
+            <div className="mono-tag text-slate-500 mb-1">YOU LEARN</div>
+            <div className="flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5 text-[#ff6b00]" />
+              <span className="text-[#ff6b00] font-bold text-sm">{myLearnSkill.name}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Goals */}
+        {p.goals && (
+          <div className="text-xs text-slate-400 italic leading-relaxed bg-[#111827] border border-[#1a2540] p-3 rounded-xl">
+            <span className="mono-tag text-slate-500 not-italic block mb-1">GOALS</span>
+            "{p.goals}"
+          </div>
+        )}
+
+        {/* Sessions (Active only) */}
+        {isActive && (
+          <div className="flex items-center justify-between pt-2 border-t border-[#1a2540]">
+            <div>
+              <div className="mono-tag text-slate-500">SESSIONS</div>
+              <div className="text-xl font-bold text-white mt-0.5">{p.sessionsCount}</div>
+            </div>
+            <button
+              onClick={() => handleLogSession(p.id)}
+              className="flex items-center gap-1.5 py-2 px-3 rounded-xl bg-[#ff6b00]/10 border border-[#ff6b00]/20 hover:bg-[#ff6b00]/20 text-[#ff6b00] text-xs font-bold transition-colors"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Log Session</span>
+            </button>
+          </div>
+        )}
+
+        {/* Actions */}
+        {isPending && !isUserA ? (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleAccept(p.id)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold transition-colors"
+            >
+              <Check className="w-3.5 h-3.5" />
+              Accept
+            </button>
+            <button
+              onClick={() => handleDecline(p.id)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 text-xs font-bold transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              Decline
+            </button>
+          </div>
+        ) : isPending && isUserA ? (
+          <div className="text-center text-xs text-slate-500 py-2 border border-dashed border-[#1a2540] rounded-xl">
+            ⏳ Waiting for peer acceptance
+          </div>
+        ) : isActive ? (
+          <button
+            onClick={() => handleComplete(p.id)}
+            className="w-full flex items-center justify-center gap-2 btn-primary py-2.5 text-xs"
+          >
+            <Award className="w-4 h-4" />
+            Mark as Completed
+          </button>
+        ) : null}
+      </div>
+    );
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
-      {/* Introduction Card */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="space-y-2">
-          <h2 className="text-xl font-black text-[#0f172a] tracking-wide flex items-center gap-2">
-            <Handshake className="h-6 w-6 text-[#ff6b00]" />
-            <span>Skill Swap Pacts</span>
-          </h2>
-          <p className="text-sm text-slate-600 max-w-2xl leading-relaxed font-medium">
-            A Skill Pact is a collaborative contract between two peers. Swap knowledge systematically: you teach your peer your skill, they teach you theirs. Log sessions to increase XP and level up together!
-          </p>
-        </div>
-        <div className="h-16 w-16 bg-orange-50 rounded-2xl border border-orange-200 flex items-center justify-center shrink-0 shadow-glow">
-          <Zap className="h-8 w-8 text-[#ff6b00]" />
+    <div className="space-y-8 max-w-5xl mx-auto pb-12 animate-slide-in">
+      {/* Hero Banner */}
+      <div className="bg-[#0a1020] border border-[#1a2540] rounded-2xl p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff6b00] to-amber-500" />
+        <div className="absolute top-[-50px] right-[-50px] w-48 h-48 rounded-full bg-[#ff6b00]/5 blur-xl" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Handshake className="w-5 h-5 text-[#ff6b00]" />
+              <h2 className="text-xl font-bold text-white">Skill Swap Pacts</h2>
+            </div>
+            <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
+              Create bilateral skill-exchange contracts with your peers. You teach what you know, they teach what you want. Log sessions together and level up!
+            </p>
+            <div className="flex items-center gap-4 pt-1">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs text-slate-400">{activePacts.length} Active</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-[#ff6b00]" />
+                <span className="text-xs text-slate-400">{pendingPacts.length} Pending</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-amber-400" />
+                <span className="text-xs text-slate-400">{completedPacts.length} Completed</span>
+              </div>
+            </div>
+          </div>
+          <div className="w-16 h-16 rounded-2xl bg-[#ff6b00]/10 border border-[#ff6b00]/20 flex items-center justify-center flex-shrink-0 animate-glow-pulse">
+            <Zap className="w-8 h-8 text-[#ff6b00]" />
+          </div>
         </div>
       </div>
 
-      {/* Grid panels */}
-      <div className="space-y-8">
-        
-        {/* Pending Requests */}
-        {pendingPacts.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-base font-extrabold text-[#0f172a] tracking-wider uppercase flex items-center gap-2">
-              <Clock className="h-4 w-4 text-[#ff6b00]" />
-              <span>Pact Requests ({pendingPacts.length})</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {pendingPacts.map((p) => {
-                const isUserA = p.userA.id === user?.id;
-                const otherUser = isUserA ? p.userB : p.userA;
-                const myTeachSkill = isUserA ? p.skillA : p.skillB;
-                const myLearnSkill = isUserA ? p.skillB : p.skillA;
-
-                return (
-                  <div 
-                    key={p.id}
-                    className="bg-white border border-slate-200 hover:border-orange-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-lg bg-orange-100 border border-orange-200 flex items-center justify-center font-bold text-[#ff6b00] text-sm shadow-glow">
-                            {otherUser.fullName.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-extrabold text-[#0f172a] text-sm">{otherUser.fullName}</div>
-                            <div className="text-[10px] text-slate-500 font-medium">{otherUser.college}</div>
-                          </div>
-                        </div>
-                        {getStatusBadge(p.status)}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-4 text-xs">
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-extrabold block mb-0.5">YOU WILL TEACH:</span>
-                          <span className="text-emerald-700 font-bold">{myTeachSkill.name}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-extrabold block mb-0.5">YOU WILL LEARN:</span>
-                          <span className="text-[#ff6b00] font-bold">{myLearnSkill.name}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-slate-600 italic font-medium mb-4 leading-relaxed bg-slate-50 border border-slate-200 p-3 rounded-xl">
-                        <span className="font-bold text-[#0f172a] block not-italic mb-1">Collaborative Goals:</span>
-                        "{p.goals || 'No goals specified.'}"
-                      </div>
-                    </div>
-
-                    {!isUserA ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleAccept(p.id)}
-                          className="flex-1 bg-emerald-50 hover:bg-emerald-600 border border-emerald-200 hover:border-transparent text-emerald-700 hover:text-white font-bold rounded-xl py-2 px-3 text-xs flex items-center justify-center gap-1.5 transition-all"
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          <span>Accept Pact</span>
-                        </button>
-                        <button
-                          onClick={() => handleDecline(p.id)}
-                          className="flex-1 bg-red-50 hover:bg-red-600 border border-red-200 hover:border-transparent text-red-700 hover:text-white font-bold rounded-xl py-2 px-3 text-xs flex items-center justify-center gap-1.5 transition-all"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                          <span>Decline</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-center text-slate-500 font-semibold border border-slate-200 rounded-xl py-2 bg-slate-50">
-                        Waiting for peer acceptance
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Active Pacts */}
+      {/* Pending Requests */}
+      {pendingPacts.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-base font-extrabold text-[#0f172a] tracking-wider uppercase flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-emerald-600" />
-            <span>Active Pacts ({activePacts.length})</span>
-          </h3>
-
-          {activePacts.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-slate-300 rounded-2xl bg-white shadow-xs">
-              <Handshake className="h-10 w-10 text-slate-400 mx-auto mb-3" />
-              <p className="text-slate-600 text-xs font-bold">No active Skill Pacts yet.</p>
-              <p className="text-slate-500 text-[10px] font-medium mt-1">Connect with a peer in the connections page and propose a swap pact!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {activePacts.map((p) => {
-                const isUserA = p.userA.id === user?.id;
-                const otherUser = isUserA ? p.userB : p.userA;
-                const myTeachSkill = isUserA ? p.skillA : p.skillB;
-                const myLearnSkill = isUserA ? p.skillB : p.skillA;
-
-                return (
-                  <div 
-                    key={p.id}
-                    className="bg-white border border-slate-200 hover:border-orange-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-bold text-white text-sm shadow-glow">
-                            {otherUser.fullName.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-extrabold text-[#0f172a] text-sm">{otherUser.fullName}</div>
-                            <div className="text-[10px] text-slate-500 font-medium">{otherUser.college}</div>
-                          </div>
-                        </div>
-                        {getStatusBadge(p.status)}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl mb-4 text-xs">
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-extrabold block mb-0.5">YOU TEACH:</span>
-                          <span className="text-emerald-700 font-bold">{myTeachSkill.name}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-extrabold block mb-0.5">YOU LEARN:</span>
-                          <span className="text-[#ff6b00] font-bold">{myLearnSkill.name}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-slate-600 italic font-medium mb-4 leading-relaxed bg-slate-50 border border-slate-200 p-3 rounded-xl">
-                        <span className="font-bold text-[#0f172a] block not-italic mb-1">Milestones & Schedule:</span>
-                        "{p.goals || 'No goals specified.'}"
-                      </div>
-
-                      {/* Session logging stats */}
-                      <div className="flex items-center justify-between border-t border-slate-200 pt-4 mb-4">
-                        <div>
-                          <span className="text-[10px] text-slate-500 font-extrabold block">SESSIONS LOGGED</span>
-                          <span className="text-lg font-black text-[#0f172a]">{p.sessionsCount} Meetings</span>
-                        </div>
-                        <button
-                          onClick={() => handleLogSession(p.id)}
-                          className="bg-orange-50 hover:bg-[#ff6b00] text-[#ff6b00] hover:text-white border border-orange-200 hover:border-transparent font-extrabold text-xs rounded-xl py-2 px-3 flex items-center gap-1 transition-all"
-                        >
-                          <PlusCircle className="h-4 w-4" />
-                          <span>Log Session</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleComplete(p.id)}
-                        className="w-full bg-gradient-to-r from-[#ff6b00] to-orange-600 hover:brightness-110 text-white font-extrabold rounded-xl py-2.5 px-3 text-xs flex items-center justify-center gap-1.5 transition-all shadow-glow"
-                      >
-                        <Award className="h-4 w-4" />
-                        <span>Mark as Completed</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#ff6b00]" />
+            <h3 className="font-bold text-white">Pending Requests</h3>
+            <span className="mono-tag text-[#ff6b00] bg-[#ff6b00]/10 px-2 py-0.5 rounded-full border border-[#ff6b00]/20 ml-1">
+              {pendingPacts.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {pendingPacts.map((p) => <PactCard key={p.id} p={p} />)}
+          </div>
         </div>
+      )}
 
-        {/* History / Completed Pacts */}
-        {completedPacts.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-base font-extrabold text-[#0f172a] tracking-wider uppercase flex items-center gap-2">
-              <Award className="h-4 w-4 text-amber-600" />
-              <span>Swap History ({completedPacts.length})</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {completedPacts.map((p) => {
-                const isUserA = p.userA.id === user?.id;
-                const otherUser = isUserA ? p.userB : p.userA;
-                const myTeachSkill = isUserA ? p.skillA : p.skillB;
-                const myLearnSkill = isUserA ? p.skillB : p.skillA;
-
-                return (
-                  <div 
-                    key={p.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="font-extrabold text-[#0f172a] text-xs truncate">{otherUser.fullName}</div>
-                        {getStatusBadge(p.status)}
-                      </div>
-
-                      <div className="text-[11px] text-slate-600 font-medium space-y-1">
-                        <div>Taught: <span className="text-emerald-700 font-bold">{myTeachSkill.name}</span></div>
-                        <div>Learnt: <span className="text-[#ff6b00] font-bold">{myLearnSkill.name}</span></div>
-                        <div className="pt-2 text-slate-500 font-bold flex items-center gap-1 text-[10px]">
-                          <Sparkles className="h-3 w-3 text-amber-500" />
-                          <span>Logged {p.sessionsCount} sessions</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      {/* Active Pacts */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-emerald-400" />
+          <h3 className="font-bold text-white">Active Pacts</h3>
+          <span className="mono-tag text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 ml-1">
+            {activePacts.length}
+          </span>
+        </div>
+        {activePacts.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-[#1a2540] rounded-2xl bg-[#0a1020]">
+            <Handshake className="w-10 h-10 text-[#1a2540] mx-auto mb-3" />
+            <p className="text-slate-400 text-sm font-semibold">No active pacts yet</p>
+            <p className="text-slate-600 text-xs mt-1">Connect with a peer and propose a skill swap from their profile!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {activePacts.map((p) => <PactCard key={p.id} p={p} />)}
           </div>
         )}
-
       </div>
+
+      {/* Completed Pacts */}
+      {completedPacts.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-amber-400" />
+            <h3 className="font-bold text-white">Swap History</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {completedPacts.map((p) => {
+              const isUserA = p.userA.id === user?.id;
+              const otherUser = isUserA ? p.userB : p.userA;
+              const myTeachSkill = isUserA ? p.skillA : p.skillB;
+              const myLearnSkill = isUserA ? p.skillB : p.skillA;
+              return (
+                <div key={p.id} className="bg-[#0a1020] border border-[#1a2540] rounded-2xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#1a2540] flex items-center justify-center font-bold text-slate-400 text-sm">
+                        {otherUser.fullName.charAt(0)}
+                      </div>
+                      <span className="text-sm font-semibold text-white truncate">{otherUser.fullName}</span>
+                    </div>
+                    <StatusBadge status={p.status} />
+                  </div>
+                  <div className="text-xs text-slate-500 space-y-1">
+                    <div>Taught: <span className="text-emerald-400 font-bold">{myTeachSkill.name}</span></div>
+                    <div>Learned: <span className="text-[#ff6b00] font-bold">{myLearnSkill.name}</span></div>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <Sparkles className="w-3 h-3 text-amber-400" />
+                    <span>{p.sessionsCount} sessions logged</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
