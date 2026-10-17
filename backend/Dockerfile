@@ -17,10 +17,11 @@ WORKDIR /app
 
 # Add a non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
+RUN mkdir -p /app/data && chown -R spring:spring /app
 USER spring:spring
 
 # Copy the built JAR from stage 1
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build --chown=spring:spring /app/target/*.jar app.jar
 
 # Expose the port (Railway sets PORT env var)
 EXPOSE 8080
