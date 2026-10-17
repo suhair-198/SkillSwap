@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
@@ -26,20 +25,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Validation Failed");
-        body.put("details", errors);
-        
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        // Collect all field error messages into one readable string
+        String message = ex.getBindingResult().getAllErrors().stream()
+                .map(error -> {
+                    if (error instanceof FieldError fe) {
+                        return fe.getField() + ": " + fe.getDefaultMessage();
+                    }
+                    return error.getDefaultMessage();
+                })
+                .collect(java.util.stream.Collectors.joining("; "));
+
+        return buildErrorResponse(message.isEmpty() ? "Validation failed" : message, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
