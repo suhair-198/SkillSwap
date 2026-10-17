@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -29,12 +30,13 @@ public class GlobalExceptionHandler {
         // Collect all field error messages into one readable string
         String message = ex.getBindingResult().getAllErrors().stream()
                 .map(error -> {
-                    if (error instanceof FieldError fe) {
+                    if (error instanceof FieldError) {
+                        FieldError fe = (FieldError) error;
                         return fe.getField() + ": " + fe.getDefaultMessage();
                     }
                     return error.getDefaultMessage();
                 })
-                .collect(java.util.stream.Collectors.joining("; "));
+                .collect(Collectors.joining("; "));
 
         return buildErrorResponse(message.isEmpty() ? "Validation failed" : message, HttpStatus.BAD_REQUEST);
     }
