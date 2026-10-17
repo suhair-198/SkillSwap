@@ -61,3 +61,6 @@ frontend/dist/
 *.class
 *.mv.db
 
+# Environment files with secrets — never commit these!
+backend/.env
+.env
