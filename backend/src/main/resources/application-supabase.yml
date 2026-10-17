@@ -3,10 +3,10 @@ server:
 
 spring:
   datasource:
-    url: ${SUPABASE_DB_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require}
-    username: ${SUPABASE_DB_USER:postgres.bitfwvrvuffbrsrgzirk}
-    password: ${SUPABASE_DB_PASSWORD:}
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:${SUPABASE_DB_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require}}
+    username: ${SPRING_DATASOURCE_USERNAME:${SUPABASE_DB_USER:postgres.bitfwvrvuffbrsrgzirk}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${SUPABASE_DB_PASSWORD:}}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 5

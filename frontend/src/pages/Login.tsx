@@ -49,12 +49,6 @@ export const Login: React.FC = () => {
     }
   };
 
-  const demoAccounts = [
-    { label: 'Alice', sublabel: 'MIT · CS', email: 'alice@skillswap.com', color: 'from-orange-400 to-rose-400' },
-    { label: 'Bob', sublabel: 'Harvard · Arts', email: 'bob@skillswap.com', color: 'from-purple-400 to-indigo-400' },
-    { label: 'Charlie', sublabel: 'Stanford · Math', email: 'charlie@skillswap.com', color: 'from-emerald-400 to-teal-400' },
-  ];
-
   return (
     <div className="min-h-screen flex bg-[#fdf8f0] overflow-hidden">
 
@@ -154,12 +148,38 @@ export const Login: React.FC = () => {
 
           {/* Card */}
           <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <div className="mb-7">
+            {/* Mode Switch Tabs */}
+            <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-2xl mb-6">
+              <button
+                type="button"
+                onClick={() => { setIsRegistering(false); setError(''); }}
+                className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
+                  !isRegistering
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsRegistering(true); setError(''); }}
+                className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
+                  isRegistering
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+
+            <div className="mb-6">
               <h2 className="text-2xl font-black text-gray-900 tracking-tight">
                 {isRegistering ? '🎓 Create Account' : '👋 Welcome back'}
               </h2>
               <p className="text-sm text-gray-500 mt-1.5">
-                {isRegistering ? 'Join the SkillSwap community today' : 'Sign in to continue your learning journey'}
+                {isRegistering ? 'Join the SkillSwap community to exchange skills' : 'Sign in to access your skills, pacts, and classes'}
               </p>
             </div>
 
@@ -258,35 +278,14 @@ export const Login: React.FC = () => {
             </form>
 
             {/* Switch */}
-            <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
               <button
                 type="button"
                 onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
-                className="text-sm font-bold text-[#f97316] hover:text-[#ea580c] transition-colors block w-full text-center"
+                className="text-sm font-bold text-[#f97316] hover:text-[#ea580c] transition-colors"
               >
                 {isRegistering ? 'Already have an account? Sign In →' : "Don't have an account? Sign Up →"}
               </button>
-
-              {/* Demo Accounts */}
-              <div className="mt-5">
-                <div className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Demo Accounts</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {demoAccounts.map((acc) => (
-                    <button
-                      key={acc.email}
-                      type="button"
-                      onClick={() => { setEmail(acc.email); setPassword('password'); setIsRegistering(false); }}
-                      className="flex flex-col items-center py-3 px-2 rounded-2xl bg-gray-50 border border-gray-100 hover:border-orange-200 hover:bg-orange-50 transition-all group shadow-sm"
-                    >
-                      <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${acc.color} flex items-center justify-center text-white font-black text-xs mb-1.5 shadow-sm`}>
-                        {acc.label[0]}
-                      </div>
-                      <span className="text-xs font-bold text-gray-700">{acc.label}</span>
-                      <span className="text-[10px] text-gray-400 mt-0.5">{acc.sublabel}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>

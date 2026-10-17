@@ -19,9 +19,13 @@ class WebSocketService {
       return; // Already initialized
     }
 
-    // Since we are using SockJS, we pass it via webSocketFactory
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => {
+        const wsUrl = typeof window !== 'undefined' && window.location.port === '5173'
+          ? '/ws'
+          : (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') + '/ws' : 'http://localhost:8080/ws');
+        return new SockJS(wsUrl);
+      },
       debug: (str) => {
         // Uncomment for debug logs
         // console.log(str);

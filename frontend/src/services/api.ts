@@ -10,7 +10,7 @@ import {
   SkillPactDTO 
 } from './types';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 // Clear legacy mock tokens on initialization so stale tokens don't cause 403 Forbidden errors
 if (typeof window !== 'undefined') {
@@ -81,7 +81,7 @@ export const api = {
           body: JSON.stringify(data),
         });
       } catch (err: any) {
-        throw new Error('Could not connect to backend server at ' + API_BASE + '. Please make sure the backend is running.');
+        throw new Error(`Could not connect to backend server at ${API_BASE} (${err?.message || 'NetworkError'}). Please make sure the backend is running.`);
       }
       return handleResponse<{ token: string; user: UserDTO }>(res);
     },
@@ -94,7 +94,7 @@ export const api = {
           body: JSON.stringify(data),
         });
       } catch (err: any) {
-        throw new Error('Could not connect to backend server at ' + API_BASE + '. Please make sure the backend is running.');
+        throw new Error(`Could not connect to backend server at ${API_BASE} (${err?.message || 'NetworkError'}). Please make sure the backend is running.`);
       }
       return handleResponse<{ token: string; user: UserDTO }>(res);
     },
