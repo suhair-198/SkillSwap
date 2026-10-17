@@ -3,28 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { GroupDTO, UserDTO, LiveClassDTO } from '../services/types';
 import { 
-  FolderGit2, 
-  Plus, 
-  Users, 
-  MessageSquare, 
-  Calendar, 
-  Crown, 
-  Check,
-  DoorOpen,
-  ArrowLeft,
-  Lock,
-  Globe,
-  Zap,
-  X
+  FolderGit2, Plus, Users, MessageSquare, Calendar, Crown, Check,
+  DoorOpen, ArrowLeft, Lock, Globe, Zap, X, AlertCircle
 } from 'lucide-react';
+
+const categoryColors = ['from-orange-400 to-rose-400', 'from-purple-400 to-indigo-400', 'from-emerald-400 to-teal-400', 'from-blue-400 to-cyan-400', 'from-amber-400 to-yellow-400'];
 
 export const Groups: React.FC = () => {
   const navigate = useNavigate();
-  
   const [publicGroups, setPublicGroups] = useState<GroupDTO[]>([]);
   const [myGroups, setMyGroups] = useState<GroupDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState<'my' | 'explore'>('my');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
@@ -47,8 +38,8 @@ export const Groups: React.FC = () => {
       ]);
       setPublicGroups(allPublic);
       setMyGroups(mine);
-    } catch (err) {
-      console.error('Error fetching groups', err);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to load groups');
     } finally {
       setLoading(false);
     }
@@ -63,7 +54,8 @@ export const Groups: React.FC = () => {
       setGroupName(''); setGroupDesc(''); setIsPrivate(false); setIsCreatingGroup(false);
       await fetchGroupsData();
     } catch (err: any) {
-      alert(`Failed to create group: ${err.message || 'Please check your connection and try again.'}`);
+      setErrorMsg(`Failed to create group: ${err.message || 'Please check your connection.'}`);
+      setTimeout(() => setErrorMsg(''), 5000);
     } finally {
       setCreating(false);
     }
@@ -74,7 +66,8 @@ export const Groups: React.FC = () => {
       await api.groups.join(groupId);
       await fetchGroupsData();
     } catch (err: any) {
-      alert(`Failed to join group: ${err.message}`);
+      setErrorMsg(`Failed to join group: ${err.message}`);
+      setTimeout(() => setErrorMsg(''), 5000);
     }
   };
 
@@ -85,7 +78,8 @@ export const Groups: React.FC = () => {
       setSelectedGroup(null);
       await fetchGroupsData();
     } catch (err: any) {
-      alert(`Failed to leave group: ${err.message}`);
+      setErrorMsg(`Failed to leave group: ${err.message}`);
+      setTimeout(() => setErrorMsg(''), 5000);
     }
   };
 
@@ -107,15 +101,16 @@ export const Groups: React.FC = () => {
   };
 
   const isMember = (groupId: string) => myGroups.some(g => g.id === groupId);
+  const getColorForGroup = (name: string) => categoryColors[name.charCodeAt(0) % categoryColors.length];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center animate-glow-pulse">
-            <Zap className="w-5 h-5 text-white" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#f97316] to-[#7c3aed] flex items-center justify-center animate-glow-pulse shadow-lg">
+            <Zap className="w-7 h-7 text-white" />
           </div>
-          <span className="mono-tag text-[#ff6b00]">Loading Groups...</span>
+          <span className="mono-tag text-[#f97316]">Loading Groups...</span>
         </div>
       </div>
     );
@@ -124,39 +119,46 @@ export const Groups: React.FC = () => {
   // ── Group Card ──
   const GroupCard = ({ g, mode }: { g: GroupDTO; mode: 'mine' | 'public' }) => {
     const member = isMember(g.id);
+    const colorGrad = getColorForGroup(g.name);
     return (
-      <div className="bg-[#0a1020] border border-[#1a2540] rounded-2xl p-5 hover:border-[#ff6b00]/30 transition-all duration-200 flex flex-col gap-4 card-offset-sm">
+      <div className="card p-5 hover:shadow-lg flex flex-col gap-4 group transition-all duration-200">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center font-bold text-white text-base flex-shrink-0 shadow-orange-glow-sm">
+          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${colorGrad} flex items-center justify-center font-black text-white text-lg flex-shrink-0 shadow-md`}>
             {g.name.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h4 className="font-bold text-white text-sm truncate">{g.name}</h4>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-bold text-gray-900 text-sm">{g.name}</h4>
               {g.isPrivate ? (
-                <Lock className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                <span className="badge badge-gray flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5" /> Private
+                </span>
               ) : (
-                <Globe className="w-3 h-3 text-emerald-500/70 flex-shrink-0" />
+                <span className="badge badge-emerald flex items-center gap-1">
+                  <Globe className="w-2.5 h-2.5" /> Public
+                </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">by {g.creator.fullName}</p>
+            <p className="text-xs text-gray-400 mt-0.5">by {g.creator.fullName}</p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{g.description || 'No description provided.'}</p>
+        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+          {g.description || 'No description provided. Join to learn more!'}
+        </p>
 
-        <div className="flex gap-2 mt-auto pt-2 border-t border-[#1a2540]">
+        <div className="flex gap-2 mt-auto pt-3 border-t border-gray-100">
           {mode === 'mine' ? (
             <>
               <button
                 onClick={() => handleViewGroupDetails(g)}
-                className="flex-1 py-2 px-3 rounded-xl bg-[#111827] border border-[#1a2540] hover:border-[#ff6b00]/30 text-white text-xs font-semibold transition-all"
+                className="flex-1 py-2 px-3 rounded-xl bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700 text-xs font-semibold transition-all"
               >
                 Manage
               </button>
               <button
                 onClick={() => navigate(`/chat?groupId=${g.id}`)}
-                className="flex items-center gap-1.5 py-2 px-3 rounded-xl bg-[#ff6b00] hover:bg-[#ff7a1a] text-white text-xs font-bold transition-colors shadow-orange-glow-sm"
+                className="flex items-center gap-1.5 btn-primary py-2 px-4 text-xs rounded-xl"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>Chat</span>
@@ -166,17 +168,17 @@ export const Groups: React.FC = () => {
             member ? (
               <button
                 onClick={() => handleViewGroupDetails(g)}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold"
+                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold"
               >
                 <Check className="w-3.5 h-3.5" />
-                <span>Joined</span>
+                <span>Joined — View</span>
               </button>
             ) : (
               <button
                 onClick={() => handleJoinGroup(g.id)}
-                className="w-full py-2 px-3 rounded-xl bg-[#ff6b00] hover:bg-[#ff7a1a] text-white text-xs font-bold transition-colors shadow-orange-glow-sm"
+                className="w-full btn-primary py-2 px-3 text-xs rounded-xl"
               >
-                Join Group
+                Join Group →
               </button>
             )
           )}
@@ -187,76 +189,88 @@ export const Groups: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12 animate-slide-in">
+
+      {errorMsg && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold animate-fade-in">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          {errorMsg}
+        </div>
+      )}
+
       {selectedGroup ? (
-        /* ── Group Details View ── */
+        /* ── Group Details ── */
         <div className="space-y-6">
           <button
             onClick={() => setSelectedGroup(null)}
-            className="flex items-center gap-2 text-slate-400 hover:text-[#ff6b00] transition-colors text-sm font-medium"
+            className="flex items-center gap-2 text-gray-500 hover:text-[#f97316] transition-colors text-sm font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Groups</span>
           </button>
 
           {/* Group Header */}
-          <div className="bg-[#0a1020] border border-[#1a2540] rounded-2xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[#ff6b00]/5 rounded-bl-full" />
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center font-bold text-white text-2xl shadow-orange-glow">
-                  {selectedGroup.name.charAt(0)}
+          <div className="card-elevated overflow-hidden">
+            <div className={`h-20 bg-gradient-to-r ${getColorForGroup(selectedGroup.name)}`} />
+            <div className="p-6 -mt-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div className="flex items-end gap-4">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getColorForGroup(selectedGroup.name)} flex items-center justify-center font-black text-white text-3xl shadow-xl border-4 border-white`}>
+                    {selectedGroup.name.charAt(0)}
+                  </div>
+                  <div className="pb-1">
+                    <h2 className="text-xl font-black text-gray-900">{selectedGroup.name}</h2>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      Created by <span className="text-[#f97316] font-semibold">{selectedGroup.creator.fullName}</span>
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1 max-w-lg">{selectedGroup.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">{selectedGroup.name}</h2>
-                  <p className="text-sm text-slate-400 mt-0.5">
-                    Created by <span className="text-[#ff6b00]">{selectedGroup.creator.fullName}</span>
-                  </p>
-                  <p className="text-sm text-slate-400 mt-2 max-w-lg">{selectedGroup.description}</p>
+                <div className="flex gap-3 flex-shrink-0">
+                  <button
+                    onClick={() => navigate(`/chat?groupId=${selectedGroup.id}`)}
+                    className="btn-primary flex items-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Group Chat</span>
+                  </button>
+                  <button
+                    onClick={() => handleLeaveGroup(selectedGroup.id)}
+                    className="flex items-center gap-2 py-2.5 px-4 rounded-xl border border-red-200 hover:bg-red-50 text-red-500 text-sm font-semibold transition-colors"
+                  >
+                    <DoorOpen className="w-4 h-4" />
+                    <span className="hidden sm:inline">Leave</span>
+                  </button>
                 </div>
-              </div>
-              <div className="flex gap-3 flex-shrink-0">
-                <button
-                  onClick={() => navigate(`/chat?groupId=${selectedGroup.id}`)}
-                  className="flex items-center gap-2 py-2.5 px-5 rounded-xl bg-[#ff6b00] hover:bg-[#ff7a1a] text-white text-sm font-bold shadow-orange-glow-sm transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Group Chat</span>
-                </button>
-                <button
-                  onClick={() => handleLeaveGroup(selectedGroup.id)}
-                  className="flex items-center gap-2 py-2.5 px-4 rounded-xl border border-red-500/20 hover:bg-red-500/10 text-red-400 text-sm font-bold transition-colors"
-                >
-                  <DoorOpen className="w-4 h-4" />
-                  <span className="hidden sm:inline">Leave</span>
-                </button>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Members */}
-            <div className="lg:col-span-2 bg-[#0a1020] border border-[#1a2540] rounded-2xl p-5">
+            <div className="lg:col-span-2 card p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Users className="w-4 h-4 text-[#ff6b00]" />
-                <h3 className="font-bold text-white">Members ({groupMembers.length})</h3>
+                <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Users className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <h3 className="font-bold text-gray-900">Members ({groupMembers.length})</h3>
               </div>
               {loadingDetails ? (
-                <div className="text-center py-6 text-slate-500 text-sm">Loading...</div>
+                <div className="text-center py-6 text-gray-400 text-sm">Loading...</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {groupMembers.map((m) => {
                     const isCreator = m.id === selectedGroup.creator.id;
                     return (
-                      <div key={m.id} className="flex items-center gap-3 p-3 bg-[#111827] border border-[#1a2540] rounded-xl">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
+                      <div key={m.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                        <div className="avatar w-9 h-9 text-sm font-black flex-shrink-0">
                           {m.fullName.charAt(0)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-semibold text-white flex items-center gap-1.5">
+                          <div className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
                             {m.fullName}
-                            {isCreator && <Crown className="w-3 h-3 text-amber-400 fill-amber-400" />}
+                            {isCreator && <Crown className="w-3 h-3 text-amber-500 fill-amber-500" />}
                           </div>
-                          <div className="text-xs text-slate-500 truncate">{m.college || 'SkillSwap Student'}</div>
+                          <div className="text-xs text-gray-400 truncate">{m.college || 'SkillSwap Student'}</div>
                         </div>
                       </div>
                     );
@@ -266,28 +280,33 @@ export const Groups: React.FC = () => {
             </div>
 
             {/* Classes */}
-            <div className="bg-[#0a1020] border border-[#1a2540] rounded-2xl p-5">
+            <div className="card p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="w-4 h-4 text-[#ff6b00]" />
-                <h3 className="font-bold text-white">Classes</h3>
+                <div className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center">
+                  <Calendar className="w-3.5 h-3.5 text-[#f97316]" />
+                </div>
+                <h3 className="font-bold text-gray-900">Classes</h3>
               </div>
               {loadingDetails ? (
-                <div className="text-center py-6 text-slate-500 text-sm">Loading...</div>
+                <div className="text-center py-6 text-gray-400 text-sm">Loading...</div>
               ) : groupClasses.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-xs">No classes scheduled</div>
+                <div className="text-center py-8 text-gray-300 text-xs">
+                  <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-200" />
+                  No classes scheduled
+                </div>
               ) : (
                 <div className="space-y-2">
                   {groupClasses.map((c) => (
                     <div
                       key={c.id}
                       onClick={() => navigate('/classes')}
-                      className="p-3 bg-[#111827] border border-[#1a2540] hover:border-[#ff6b00]/30 rounded-xl cursor-pointer transition-all"
+                      className="p-3 bg-orange-50 border border-orange-100 hover:border-orange-200 rounded-xl cursor-pointer transition-all"
                     >
-                      <div className="font-semibold text-white text-xs truncate">{c.title}</div>
-                      <div className="text-[10px] text-slate-500 mt-1">
+                      <div className="font-bold text-gray-900 text-xs truncate">{c.title}</div>
+                      <div className="text-[10px] text-gray-400 mt-1">
                         {new Date(c.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                       </div>
-                      <span className="mono-tag text-[#ff6b00] mt-1 inline-block">{c.meetingPlatform}</span>
+                      <span className="badge badge-orange mt-1">{c.meetingPlatform}</span>
                     </div>
                   ))}
                 </div>
@@ -301,12 +320,12 @@ export const Groups: React.FC = () => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-white">Learning Groups</h2>
-              <p className="text-sm text-slate-400 mt-0.5">Collaborate and learn together</p>
+              <h2 className="section-title">🏫 Learning Groups</h2>
+              <p className="section-subtitle">Collaborate and grow with your peers</p>
             </div>
             <button
               onClick={() => setIsCreatingGroup(true)}
-              className="flex items-center gap-2 btn-primary"
+              className="btn-primary flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>New Group</span>
@@ -314,15 +333,15 @@ export const Groups: React.FC = () => {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-[#0a1020] border border-[#1a2540] p-1 rounded-xl w-fit">
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl w-fit">
             {(['my', 'explore'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveSubTab(tab)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
                   activeSubTab === tab
-                    ? 'bg-[#ff6b00] text-white shadow-orange-glow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {tab === 'my' ? `My Groups (${myGroups.length})` : 'Explore Public'}
@@ -333,10 +352,10 @@ export const Groups: React.FC = () => {
           {/* Group Grid */}
           {activeSubTab === 'my' ? (
             myGroups.length === 0 ? (
-              <div className="text-center py-16 border border-dashed border-[#1a2540] rounded-2xl bg-[#0a1020]">
-                <FolderGit2 className="w-12 h-12 text-[#1a2540] mx-auto mb-4" />
-                <p className="text-slate-400 font-semibold text-sm">No groups yet</p>
-                <p className="text-slate-600 text-xs mt-1">Browse the Explore tab to find study groups</p>
+              <div className="text-center py-16 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50">
+                <FolderGit2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 font-bold">No groups yet</p>
+                <p className="text-gray-400 text-sm mt-1">Browse the Explore tab to find study groups</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -345,9 +364,10 @@ export const Groups: React.FC = () => {
             )
           ) : (
             publicGroups.length === 0 ? (
-              <div className="text-center py-16 border border-dashed border-[#1a2540] rounded-2xl bg-[#0a1020]">
-                <Globe className="w-12 h-12 text-[#1a2540] mx-auto mb-4" />
-                <p className="text-slate-400 font-semibold text-sm">No public groups found</p>
+              <div className="text-center py-16 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50">
+                <Globe className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 font-bold">No public groups found</p>
+                <p className="text-gray-400 text-sm mt-1">Create one and start a community!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -360,64 +380,62 @@ export const Groups: React.FC = () => {
 
       {/* ── Create Group Modal ── */}
       {isCreatingGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="w-full max-w-md bg-[#0a1020] border border-[#1a2540] rounded-2xl p-6 card-offset animate-slide-in">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-3xl p-7 shadow-2xl border border-gray-100 animate-slide-in">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-bold text-white">Create Learning Group</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Build a study community</p>
+                <h3 className="text-lg font-black text-gray-900">🏫 Create Learning Group</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Build a study community</p>
               </div>
-              <button onClick={() => setIsCreatingGroup(false)} className="text-slate-500 hover:text-white transition-colors">
+              <button onClick={() => setIsCreatingGroup(false)} className="text-gray-400 hover:text-gray-700 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateGroup} className="space-y-4">
               <div>
-                <label className="block mono-tag text-slate-400 mb-1.5">Group Name</label>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Group Name</label>
                 <input
                   type="text" required
                   placeholder="e.g. EECS Algorithms Study Group"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#1a2540] focus:border-[#ff6b00] text-white rounded-xl py-2.5 px-4 outline-none transition-colors text-sm placeholder-slate-600"
+                  className="input-light"
                 />
               </div>
               <div>
-                <label className="block mono-tag text-slate-400 mb-1.5">Description</label>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Description</label>
                 <textarea
                   rows={3}
                   placeholder="Goals, topics, study schedule..."
                   value={groupDesc}
                   onChange={(e) => setGroupDesc(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#1a2540] focus:border-[#ff6b00] text-white rounded-xl py-2.5 px-4 outline-none transition-colors text-sm resize-none placeholder-slate-600"
+                  className="input-light resize-none"
                 />
               </div>
-              <div className="flex items-center gap-3 p-3 bg-[#111827] border border-[#1a2540] rounded-xl">
+
+              {/* Privacy Toggle */}
+              <div
+                className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-2xl cursor-pointer"
+                onClick={() => setIsPrivate(!isPrivate)}
+              >
                 <button
                   type="button"
-                  onClick={() => setIsPrivate(!isPrivate)}
-                  className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 relative ${isPrivate ? 'bg-[#ff6b00]' : 'bg-[#1a2540]'}`}
+                  className={`w-11 h-6 rounded-full transition-colors flex-shrink-0 relative ${isPrivate ? 'bg-[#f97316]' : 'bg-gray-200'}`}
                 >
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${isPrivate ? 'left-5' : 'left-1'}`} />
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${isPrivate ? 'left-6' : 'left-1'}`} />
                 </button>
                 <div>
-                  <div className="text-sm font-semibold text-white">Private Group</div>
-                  <div className="text-xs text-slate-500">Only invited members can join</div>
+                  <div className="text-sm font-bold text-gray-800">Private Group</div>
+                  <div className="text-xs text-gray-400">Only invited members can join</div>
                 </div>
+                {isPrivate ? <Lock className="w-4 h-4 text-[#f97316] ml-auto" /> : <Globe className="w-4 h-4 text-emerald-500 ml-auto" />}
               </div>
 
               <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsCreatingGroup(false)} className="flex-1 btn-secondary py-2.5">Cancel</button>
                 <button
-                  type="button"
-                  onClick={() => setIsCreatingGroup(false)}
-                  className="flex-1 btn-secondary py-2.5"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
+                  type="submit" disabled={creating}
                   className="flex-1 btn-primary py-2.5 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {creating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}

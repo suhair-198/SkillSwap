@@ -6,26 +6,46 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:default}
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/skillswapdb;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE}
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:password}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
-  
+    url: jdbc:h2:file:./data/skillswapdb;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;AUTO_RECONNECT=TRUE
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 600000
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
     properties:
       hibernate:
-        dialect: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.H2Dialect}
         format_sql: true
+        jdbc:
+          time_zone: UTC
     open-in-view: false
 
   sql:
     init:
-      mode: never # Set to always if you want to run schema.sql on startup, but standard JPA ddl-auto update is preferred for initial dynamic schema syncing.
+      mode: never
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+logging:
+  level:
+    com.skillswap: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
 
 app:
   jwt:
     secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-    expiration-ms: ${JWT_EXPIRATION:86400000} # 24 hours in ms
+    expiration-ms: ${JWT_EXPIRATION:86400000}

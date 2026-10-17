@@ -50,6 +50,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll() // WebSockets
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/skills", "/api/skills/search").permitAll()
                         .requestMatchers("/api/skills/public/**").permitAll()
                         .anyRequest().authenticated()
                 );

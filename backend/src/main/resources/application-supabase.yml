@@ -1,11 +1,11 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   datasource:
-    url: jdbc:postgresql://db.bitfwvrvuffbrsrgzirk.supabase.co:5432/postgres?sslmode=require
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require}
+    username: ${SUPABASE_DB_USER:postgres.bitfwvrvuffbrsrgzirk}
+    password: ${SUPABASE_DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -29,6 +29,10 @@ spring:
   sql:
     init:
       mode: never
+
+  h2:
+    console:
+      enabled: false
 
 app:
   jwt:

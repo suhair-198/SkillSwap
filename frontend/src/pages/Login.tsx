@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Mail, Lock, User, GraduationCap, Building, ArrowRight, Sparkles } from 'lucide-react';
+import { 
+  Zap, Mail, Lock, User, GraduationCap, Building, 
+  ArrowRight, Sparkles, BookOpen, Users, Trophy, Lightbulb
+} from 'lucide-react';
+
+const features = [
+  { icon: BookOpen, title: 'Learn from Peers', desc: 'Real students, real skills — no textbooks needed.' },
+  { icon: Users, title: 'Study Groups', desc: 'Collaborate in private or public learning squads.' },
+  { icon: Trophy, title: 'XP & Levels', desc: 'Earn points for every session you teach or attend.' },
+  { icon: Lightbulb, title: 'Skill Matching', desc: 'Our algorithm finds your perfect skill-exchange partner.' },
+];
+
+const stats = [
+  { value: '500+', label: 'Students' },
+  { value: '1.2K', label: 'Skills Swapped' },
+  { value: '98%', label: 'Satisfaction' },
+];
 
 export const Login: React.FC = () => {
   const { login, register } = useAuth();
@@ -9,7 +25,6 @@ export const Login: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -35,134 +50,164 @@ export const Login: React.FC = () => {
   };
 
   const demoAccounts = [
-    { label: 'Alice', sublabel: 'MIT', email: 'alice@skillswap.com' },
-    { label: 'Bob', sublabel: 'Harvard', email: 'bob@skillswap.com' },
-    { label: 'Charlie', sublabel: 'Stanford', email: 'charlie@skillswap.com' },
+    { label: 'Alice', sublabel: 'MIT · CS', email: 'alice@skillswap.com', color: 'from-orange-400 to-rose-400' },
+    { label: 'Bob', sublabel: 'Harvard · Arts', email: 'bob@skillswap.com', color: 'from-purple-400 to-indigo-400' },
+    { label: 'Charlie', sublabel: 'Stanford · Math', email: 'charlie@skillswap.com', color: 'from-emerald-400 to-teal-400' },
   ];
 
   return (
-    <div className="min-h-screen flex bg-[#060b14] overflow-hidden">
-      {/* ── Left Panel (hidden on mobile) ── */}
-      <div className="hidden lg:flex flex-col justify-between w-[45%] bg-gradient-to-br from-[#0a1020] to-[#0f172a] border-r border-[#1a2540] p-12 relative overflow-hidden">
-        {/* Decorative Orbs */}
-        <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full bg-[#ff6b00]/10 blur-[80px] pointer-events-none" />
-        <div className="absolute bottom-[-100px] right-[-100px] w-[300px] h-[300px] rounded-full bg-amber-500/8 blur-[80px] pointer-events-none" />
+    <div className="min-h-screen flex bg-[#fdf8f0] overflow-hidden">
+
+      {/* ── Left Panel ── */}
+      <div className="hidden lg:flex flex-col justify-between w-[48%] relative overflow-hidden bg-gradient-to-br from-[#fff7ed] via-[#fef3c7] to-[#f5f3ff] p-12">
+        {/* Decorative Blobs */}
+        <div className="absolute top-[-80px] left-[-80px] w-[380px] h-[380px] rounded-full bg-gradient-to-br from-orange-300/40 to-amber-200/30 blur-[60px] pointer-events-none" />
+        <div className="absolute bottom-[-80px] right-[-80px] w-[300px] h-[300px] rounded-full bg-gradient-to-br from-purple-300/40 to-indigo-200/30 blur-[60px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-orange-100/20 to-purple-100/20 blur-[80px] pointer-events-none" />
+
+        {/* Floating shapes */}
+        <div className="absolute top-20 right-20 w-16 h-16 rounded-2xl bg-white/60 border border-white/80 shadow-lg animate-float flex items-center justify-center">
+          <Zap className="w-7 h-7 text-orange-400" />
+        </div>
+        <div className="absolute bottom-32 left-16 w-12 h-12 rounded-xl bg-white/60 border border-white/80 shadow-lg animate-float flex items-center justify-center" style={{ animationDelay: '1.5s' }}>
+          <Trophy className="w-5 h-5 text-purple-500" />
+        </div>
+        <div className="absolute top-1/3 right-8 w-10 h-10 rounded-xl bg-white/60 border border-white/80 shadow-lg animate-float flex items-center justify-center" style={{ animationDelay: '0.8s' }}>
+          <BookOpen className="w-4 h-4 text-emerald-500" />
+        </div>
 
         {/* Logo */}
         <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center shadow-orange-glow-sm">
-            <Zap className="w-5 h-5 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#f97316] to-[#7c3aed] flex items-center justify-center shadow-lg">
+            <Zap className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold">Skill<span className="text-[#ff6b00]">Swap</span></span>
+          <span className="text-2xl font-black text-gray-900 tracking-tight">
+            Skill<span className="text-[#f97316]">Swap</span>
+          </span>
         </div>
 
         {/* Tagline */}
-        <div className="relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#ff6b00]/10 border border-[#ff6b00]/20">
-            <Sparkles className="w-3.5 h-3.5 text-[#ff6b00]" />
-            <span className="mono-tag text-[#ff6b00]">P2P LEARNING PLATFORM</span>
+        <div className="relative z-10 space-y-7">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 border border-orange-200 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-[#f97316]" />
+            <span className="mono-tag text-[#c2410c]">P2P LEARNING PLATFORM</span>
           </div>
-          <h1 className="text-4xl font-bold leading-tight text-white">
-            Teach what you know.<br />
-            <span className="text-gradient">Learn what you don't.</span>
-          </h1>
-          <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-            SkillSwap connects students for peer-to-peer skill exchanges. Create pacts, join live classes, and level up together.
+
+          <div>
+            <h1 className="text-5xl font-black leading-tight text-gray-900 tracking-tight">
+              Teach what<br />you know.
+            </h1>
+            <h1 className="text-5xl font-black leading-tight mt-1 text-gradient">
+              Learn what you don't.
+            </h1>
+          </div>
+
+          <p className="text-gray-500 text-base leading-relaxed max-w-sm">
+            SkillSwap connects students for peer-to-peer skill exchanges. 
+            Create pacts, join live classes, and level up together.
           </p>
 
-          {/* Feature chips */}
-          <div className="flex flex-wrap gap-2 pt-2">
-            {['Skill Matching', 'Live Classes', 'Study Groups', 'XP & Levels', 'Real-time Chat'].map((f) => (
-              <span key={f} className="px-3 py-1 rounded-full bg-[#111827] border border-[#1a2540] text-xs font-medium text-slate-300">
-                {f}
-              </span>
-            ))}
+          {/* Feature List */}
+          <div className="grid grid-cols-2 gap-3">
+            {features.map((f) => {
+              const Icon = f.icon;
+              return (
+                <div key={f.title} className="flex items-start gap-3 p-3 bg-white/70 border border-white/90 rounded-2xl shadow-sm">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-[#f97316]" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-gray-800">{f.title}</div>
+                    <div className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{f.desc}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Stats row */}
-        <div className="flex gap-6 relative z-10">
-          {[
-            { value: '500+', label: 'Students' },
-            { value: '1.2K', label: 'Skills Swapped' },
-            { value: '98%', label: 'Satisfaction' },
-          ].map((s) => (
+        {/* Stats */}
+        <div className="flex gap-8 relative z-10">
+          {stats.map((s) => (
             <div key={s.label}>
-              <div className="text-2xl font-bold text-gradient">{s.value}</div>
-              <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
+              <div className="text-3xl font-black text-gradient">{s.value}</div>
+              <div className="text-xs text-gray-500 mt-0.5 font-medium">{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── Right Panel (Form) ── */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-[#070d1a] bg-grid-pattern relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#ff6b00]/3 to-transparent pointer-events-none" />
+      <div className="flex-1 flex items-center justify-center p-6 relative overflow-hidden">
+        {/* BG decoration */}
+        <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-purple-100/40 blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full bg-orange-100/40 blur-[80px] pointer-events-none" />
 
         <div className="w-full max-w-md relative z-10 animate-slide-in">
           {/* Mobile Logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f97316] to-[#7c3aed] flex items-center justify-center shadow-md">
+              <Zap className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-bold">Skill<span className="text-[#ff6b00]">Swap</span></span>
+            <span className="text-xl font-black">Skill<span className="text-[#f97316]">Swap</span></span>
           </div>
 
           {/* Card */}
-          <div className="bg-[#0a1020] border border-[#1a2540] rounded-2xl p-7 card-offset">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                {isRegistering ? 'Create Account' : 'Welcome back'}
+          <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+            <div className="mb-7">
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                {isRegistering ? '🎓 Create Account' : '👋 Welcome back'}
               </h2>
-              <p className="text-sm text-slate-400 mt-1">
-                {isRegistering ? 'Join the SkillSwap community' : 'Sign in to your account'}
+              <p className="text-sm text-gray-500 mt-1.5">
+                {isRegistering ? 'Join the SkillSwap community today' : 'Sign in to continue your learning journey'}
               </p>
             </div>
 
             {error && (
-              <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">
-                ⚠ {error}
+              <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium flex items-center gap-2">
+                <span>⚠️</span>
+                <span>{error}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {isRegistering && (
                 <div>
-                  <label className="block mono-tag text-slate-400 mb-1.5">Full Name</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Full Name</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                       type="text" required value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="John Doe"
-                      className="w-full bg-[#111827] border border-[#1a2540] focus:border-[#ff6b00] text-white rounded-xl py-2.5 pl-10 pr-4 outline-none transition-colors text-sm placeholder-slate-600"
+                      className="input-light pl-10"
                     />
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="block mono-tag text-slate-400 mb-1.5">Email Address</label>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="email" required value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@college.edu"
-                    className="w-full bg-[#111827] border border-[#1a2540] focus:border-[#ff6b00] text-white rounded-xl py-2.5 pl-10 pr-4 outline-none transition-colors text-sm placeholder-slate-600"
+                    className="input-light pl-10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block mono-tag text-slate-400 mb-1.5">Password</label>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="password" required value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#111827] border border-[#1a2540] focus:border-[#ff6b00] text-white rounded-xl py-2.5 pl-10 pr-4 outline-none transition-colors text-sm placeholder-slate-600"
+                    className="input-light pl-10"
                   />
                 </div>
               </div>
@@ -170,26 +215,26 @@ export const Login: React.FC = () => {
               {isRegistering && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block mono-tag text-slate-400 mb-1.5">College</label>
+                    <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">College</label>
                     <div className="relative">
-                      <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text" value={college}
                         onChange={(e) => setCollege(e.target.value)}
                         placeholder="MIT"
-                        className="w-full bg-[#111827] border border-[#1a2540] focus:border-[#ff6b00] text-white rounded-xl py-2.5 pl-9 pr-3 outline-none transition-colors text-sm placeholder-slate-600"
+                        className="input-light pl-9"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block mono-tag text-slate-400 mb-1.5">Department</label>
+                    <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Department</label>
                     <div className="relative">
-                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text" value={department}
                         onChange={(e) => setDepartment(e.target.value)}
                         placeholder="CS"
-                        className="w-full bg-[#111827] border border-[#1a2540] focus:border-[#ff6b00] text-white rounded-xl py-2.5 pl-9 pr-3 outline-none transition-colors text-sm placeholder-slate-600"
+                        className="input-light pl-9"
                       />
                     </div>
                   </div>
@@ -199,10 +244,10 @@ export const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-primary flex items-center justify-center gap-2 mt-2 py-3 disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full btn-primary flex items-center justify-center gap-2 mt-2 py-3 text-base rounded-xl disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>{isRegistering ? 'Create Account' : 'Sign In'}</span>
@@ -213,31 +258,31 @@ export const Login: React.FC = () => {
             </form>
 
             {/* Switch */}
-            <div className="mt-5 pt-5 border-t border-[#1a2540]">
+            <div className="mt-6 pt-6 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
-                className="text-sm font-semibold text-[#ff6b00] hover:text-amber-400 transition-colors block w-full text-center"
+                className="text-sm font-bold text-[#f97316] hover:text-[#ea580c] transition-colors block w-full text-center"
               >
                 {isRegistering ? 'Already have an account? Sign In →' : "Don't have an account? Sign Up →"}
               </button>
 
               {/* Demo Accounts */}
-              <div className="mt-4">
-                <div className="mono-tag text-slate-600 text-center mb-2">DEMO ACCOUNTS</div>
+              <div className="mt-5">
+                <div className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Demo Accounts</div>
                 <div className="grid grid-cols-3 gap-2">
                   {demoAccounts.map((acc) => (
                     <button
                       key={acc.email}
                       type="button"
-                      onClick={() => { setEmail(acc.email); setPassword('password'); }}
-                      className="flex flex-col items-center py-2 px-2 rounded-xl bg-[#111827] border border-[#1a2540] hover:border-[#ff6b00]/40 hover:bg-[#ff6b00]/5 transition-all group"
+                      onClick={() => { setEmail(acc.email); setPassword('password'); setIsRegistering(false); }}
+                      className="flex flex-col items-center py-3 px-2 rounded-2xl bg-gray-50 border border-gray-100 hover:border-orange-200 hover:bg-orange-50 transition-all group shadow-sm"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#ff6b00] to-amber-500 flex items-center justify-center text-white font-bold text-xs mb-1 group-hover:shadow-orange-glow-sm">
+                      <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${acc.color} flex items-center justify-center text-white font-black text-xs mb-1.5 shadow-sm`}>
                         {acc.label[0]}
                       </div>
-                      <span className="text-xs font-semibold text-white">{acc.label}</span>
-                      <span className="text-[10px] text-slate-500">{acc.sublabel}</span>
+                      <span className="text-xs font-bold text-gray-700">{acc.label}</span>
+                      <span className="text-[10px] text-gray-400 mt-0.5">{acc.sublabel}</span>
                     </button>
                   ))}
                 </div>

@@ -12,6 +12,15 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api';
 
+// Clear legacy mock tokens on initialization so stale tokens don't cause 403 Forbidden errors
+if (typeof window !== 'undefined') {
+  const existingToken = localStorage.getItem('token');
+  if (existingToken && existingToken.startsWith('mock-')) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('current_mock_user');
+  }
+}
+
 const getHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -20,130 +29,86 @@ const getHeaders = () => {
   };
 };
 
-const DEFAULT_MOCK_USERS: Record<string, UserDTO> = {
-  'alice@skillswap.com': {
-    id: '11111111-1111-1111-1111-111111111111',
-    email: 'alice@skillswap.com',
-    fullName: 'Alice Smith',
-    bio: 'Computer Science major at MIT. I love building web apps and learning languages.',
-    college: 'MIT',
-    department: 'Computer Science',
-    xp: 1200,
-    level: 3,
-    reputation: 95,
-    currentStreak: 5,
-  },
-  'bob@skillswap.com': {
-    id: '22222222-2222-2222-2222-222222222222',
-    email: 'bob@skillswap.com',
-    fullName: 'Bob Jones',
-    bio: 'Language enthusiast and UX/UI Designer.',
-    college: 'Harvard',
-    department: 'Visual Arts',
-    xp: 850,
-    level: 2,
-    reputation: 80,
-    currentStreak: 2,
-  },
-  'charlie@skillswap.com': {
-    id: '33333333-3333-3333-3333-333333333333',
-    email: 'charlie@skillswap.com',
-    fullName: 'Charlie Brown',
-    bio: 'Mathematics major interested in data science.',
-    college: 'Stanford',
-    department: 'Mathematics',
-    xp: 450,
-    level: 1,
-    reputation: 70,
-    currentStreak: 0,
+const handleResponse = async <T>(res: Response): Promise<T> => {
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('current_mock_user');
+    }
+    let errorMsg = '';
+    try {
+      const data = await res.json();
+      errorMsg = data.message || data.error || (typeof data === 'string' ? data : JSON.stringify(data));
+    } catch {
+      try {
+        const text = await res.text();
+        if (text) errorMsg = text;
+      } catch {}
+    }
+    throw new Error(errorMsg || `Request failed with status ${res.status}`);
   }
+  return res.json();
 };
 
-const getLocalUsers = (): Record<string, UserDTO> => {
-  const stored = localStorage.getItem('local_users_db');
-  if (stored) {
-    try { return JSON.parse(stored); } catch (e) {}
+const handleVoidResponse = async (res: Response): Promise<void> => {
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('current_mock_user');
+    }
+    let errorMsg = '';
+    try {
+      const data = await res.json();
+      errorMsg = data.message || data.error || (typeof data === 'string' ? data : JSON.stringify(data));
+    } catch {
+      try {
+        const text = await res.text();
+        if (text) errorMsg = text;
+      } catch {}
+    }
+    throw new Error(errorMsg || `Request failed with status ${res.status}`);
   }
-  return DEFAULT_MOCK_USERS;
-};
-
-const saveLocalUser = (user: UserDTO) => {
-  const users = getLocalUsers();
-  users[user.email.toLowerCase()] = user;
-  localStorage.setItem('local_users_db', JSON.stringify(users));
 };
 
 export const api = {
   auth: {
     login: async (data: any): Promise<{ token: string; user: UserDTO }> => {
+      let res: Response;
       try {
-        const res = await fetch(`${API_BASE}/auth/login`, {
+        res = await fetch(`${API_BASE}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        if (!res.ok) throw new Error(await res.text() || 'Login failed');
-        return res.json();
       } catch (err: any) {
-        console.warn('Backend API connection failed, using local auth mode:', err.message);
-        const users = getLocalUsers();
-        const user = users[data.email.toLowerCase()] || {
-          id: 'user-' + Date.now(),
-          email: data.email,
-          fullName: data.email.split('@')[0],
-          xp: 100,
-          level: 1,
-          reputation: 50,
-          currentStreak: 1,
-        };
-        const mockToken = 'mock-jwt-token-' + Date.now();
-        localStorage.setItem('current_mock_user', JSON.stringify(user));
-        return { token: mockToken, user };
+        throw new Error('Could not connect to backend server at ' + API_BASE + '. Please make sure the backend is running.');
       }
+      return handleResponse<{ token: string; user: UserDTO }>(res);
     },
     register: async (data: any): Promise<{ token: string; user: UserDTO }> => {
+      let res: Response;
       try {
-        const res = await fetch(`${API_BASE}/auth/register`, {
+        res = await fetch(`${API_BASE}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        if (!res.ok) throw new Error(await res.text() || 'Registration failed');
-        return res.json();
       } catch (err: any) {
-        console.warn('Backend API connection failed, registering in local auth mode:', err.message);
-        const newUser: UserDTO = {
-          id: 'user-' + Date.now(),
-          email: data.email,
-          fullName: data.fullName || data.email.split('@')[0],
-          college: data.college || 'University',
-          department: data.department || 'General',
-          xp: 100,
-          level: 1,
-          reputation: 50,
-          currentStreak: 1,
-        };
-        saveLocalUser(newUser);
-        const mockToken = 'mock-jwt-token-' + Date.now();
-        localStorage.setItem('current_mock_user', JSON.stringify(newUser));
-        return { token: mockToken, user: newUser };
+        throw new Error('Could not connect to backend server at ' + API_BASE + '. Please make sure the backend is running.');
       }
+      return handleResponse<{ token: string; user: UserDTO }>(res);
     },
     me: async (): Promise<UserDTO> => {
+      let res: Response;
       try {
-        const res = await fetch(`${API_BASE}/auth/me`, {
+        res = await fetch(`${API_BASE}/auth/me`, {
           method: 'GET',
           headers: getHeaders(),
         });
-        if (!res.ok) throw new Error('Failed to get current user');
-        return res.json();
       } catch (err: any) {
-        const storedMock = localStorage.getItem('current_mock_user');
-        if (storedMock) {
-          try { return JSON.parse(storedMock); } catch (e) {}
-        }
-        return DEFAULT_MOCK_USERS['alice@skillswap.com'];
+        throw new Error('Backend not reachable');
       }
+      return handleResponse<UserDTO>(res);
     },
   },
   users: {
@@ -151,8 +116,7 @@ export const api = {
       const res = await fetch(`${API_BASE}/users/profile/${id}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Profile not found');
-      return res.json();
+      return handleResponse<UserDTO>(res);
     },
     updateProfile: async (data: any): Promise<UserDTO> => {
       const res = await fetch(`${API_BASE}/users/profile`, {
@@ -160,23 +124,20 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to update profile');
-      return res.json();
+      return handleResponse<UserDTO>(res);
     },
     getLeaderboard: async (): Promise<UserDTO[]> => {
       const res = await fetch(`${API_BASE}/users/leaderboard`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch leaderboard');
-      return res.json();
+      return handleResponse<UserDTO[]>(res);
     },
     getAnalytics: async (userId?: string): Promise<any> => {
       const url = userId ? `${API_BASE}/users/analytics/${userId}` : `${API_BASE}/users/analytics`;
       const res = await fetch(url, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch analytics');
-      return res.json();
+      return handleResponse<any>(res);
     },
   },
   skills: {
@@ -184,29 +145,25 @@ export const api = {
       const res = await fetch(`${API_BASE}/skills`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch skills');
-      return res.json();
+      return handleResponse<SkillDTO[]>(res);
     },
     search: async (query: string): Promise<SkillDTO[]> => {
       const res = await fetch(`${API_BASE}/skills/search?query=${encodeURIComponent(query)}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Search failed');
-      return res.json();
+      return handleResponse<SkillDTO[]>(res);
     },
     getMy: async (): Promise<UserSkillDTO[]> => {
       const res = await fetch(`${API_BASE}/skills/my`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch user skills');
-      return res.json();
+      return handleResponse<UserSkillDTO[]>(res);
     },
     getUserSkills: async (userId: string): Promise<UserSkillDTO[]> => {
       const res = await fetch(`${API_BASE}/skills/user/${userId}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch user skills');
-      return res.json();
+      return handleResponse<UserSkillDTO[]>(res);
     },
     add: async (data: { skillName: string; category: string; proficiencyLevel: string; known: boolean }): Promise<UserSkillDTO> => {
       const res = await fetch(`${API_BASE}/skills/my`, {
@@ -214,15 +171,14 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to add skill');
-      return res.json();
+      return handleResponse<UserSkillDTO>(res);
     },
     remove: async (skillId: string, isKnown: boolean): Promise<void> => {
       const res = await fetch(`${API_BASE}/skills/my/${skillId}?isKnown=${isKnown}`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to remove skill');
+      return handleVoidResponse(res);
     },
   },
   matches: {
@@ -230,8 +186,7 @@ export const api = {
       const res = await fetch(`${API_BASE}/matches`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch matches');
-      return res.json();
+      return handleResponse<MatchResponse[]>(res);
     },
   },
   connections: {
@@ -240,45 +195,39 @@ export const api = {
         method: 'POST',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to send connection request');
-      return res.json();
+      return handleResponse<ConnectionDTO>(res);
     },
     acceptRequest: async (connectionId: string): Promise<ConnectionDTO> => {
       const res = await fetch(`${API_BASE}/connections/accept/${connectionId}`, {
         method: 'PUT',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to accept request');
-      return res.json();
+      return handleResponse<ConnectionDTO>(res);
     },
     declineRequest: async (connectionId: string): Promise<ConnectionDTO> => {
       const res = await fetch(`${API_BASE}/connections/decline/${connectionId}`, {
         method: 'PUT',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to decline request');
-      return res.json();
+      return handleResponse<ConnectionDTO>(res);
     },
     getMy: async (): Promise<UserDTO[]> => {
       const res = await fetch(`${API_BASE}/connections`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch connections');
-      return res.json();
+      return handleResponse<UserDTO[]>(res);
     },
     getPendingReceived: async (): Promise<ConnectionDTO[]> => {
       const res = await fetch(`${API_BASE}/connections/pending/received`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch received requests');
-      return res.json();
+      return handleResponse<ConnectionDTO[]>(res);
     },
     getPendingSent: async (): Promise<ConnectionDTO[]> => {
       const res = await fetch(`${API_BASE}/connections/pending/sent`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch sent requests');
-      return res.json();
+      return handleResponse<ConnectionDTO[]>(res);
     },
   },
   pacts: {
@@ -288,47 +237,41 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to create skill pact');
-      return res.json();
+      return handleResponse<SkillPactDTO>(res);
     },
     accept: async (id: string): Promise<SkillPactDTO> => {
       const res = await fetch(`${API_BASE}/pacts/accept/${id}`, {
         method: 'PUT',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to accept pact');
-      return res.json();
+      return handleResponse<SkillPactDTO>(res);
     },
     decline: async (id: string): Promise<SkillPactDTO> => {
       const res = await fetch(`${API_BASE}/pacts/decline/${id}`, {
         method: 'PUT',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to decline pact');
-      return res.json();
+      return handleResponse<SkillPactDTO>(res);
     },
     complete: async (id: string): Promise<SkillPactDTO> => {
       const res = await fetch(`${API_BASE}/pacts/complete/${id}`, {
         method: 'PUT',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to complete pact');
-      return res.json();
+      return handleResponse<SkillPactDTO>(res);
     },
     logSession: async (id: string): Promise<SkillPactDTO> => {
       const res = await fetch(`${API_BASE}/pacts/sessions/${id}`, {
         method: 'PUT',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to log session');
-      return res.json();
+      return handleResponse<SkillPactDTO>(res);
     },
     getMy: async (): Promise<SkillPactDTO[]> => {
       const res = await fetch(`${API_BASE}/pacts`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch pacts');
-      return res.json();
+      return handleResponse<SkillPactDTO[]>(res);
     },
   },
   chat: {
@@ -336,29 +279,26 @@ export const api = {
       const res = await fetch(`${API_BASE}/chat/direct/${userId}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch direct chat history');
-      return res.json();
+      return handleResponse<MessageDTO[]>(res);
     },
     getGroupHistory: async (groupId: string): Promise<MessageDTO[]> => {
       const res = await fetch(`${API_BASE}/chat/group/${groupId}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch group chat history');
-      return res.json();
+      return handleResponse<MessageDTO[]>(res);
     },
     getUnreadCount: async (senderId: string): Promise<number> => {
       const res = await fetch(`${API_BASE}/chat/unread/${senderId}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to get unread count');
-      return res.json();
+      return handleResponse<number>(res);
     },
     markAsRead: async (senderId: string): Promise<void> => {
       const res = await fetch(`${API_BASE}/chat/read/${senderId}`, {
         method: 'POST',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to mark messages as read');
+      return handleVoidResponse(res);
     },
   },
   groups: {
@@ -368,50 +308,45 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to create group');
-      return res.json();
+      return handleResponse<GroupDTO>(res);
     },
     getAllPublic: async (): Promise<GroupDTO[]> => {
       const res = await fetch(`${API_BASE}/groups`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch groups');
-      return res.json();
+      return handleResponse<GroupDTO[]>(res);
     },
     getMy: async (): Promise<GroupDTO[]> => {
       const res = await fetch(`${API_BASE}/groups/my`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch my groups');
-      return res.json();
+      return handleResponse<GroupDTO[]>(res);
     },
     getDetails: async (id: string): Promise<GroupDTO> => {
       const res = await fetch(`${API_BASE}/groups/${id}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch group details');
-      return res.json();
+      return handleResponse<GroupDTO>(res);
     },
     join: async (id: string): Promise<void> => {
       const res = await fetch(`${API_BASE}/groups/${id}/join`, {
         method: 'POST',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to join group');
+      return handleVoidResponse(res);
     },
     leave: async (id: string): Promise<void> => {
       const res = await fetch(`${API_BASE}/groups/${id}/leave`, {
         method: 'POST',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to leave group');
+      return handleVoidResponse(res);
     },
     getMembers: async (id: string): Promise<UserDTO[]> => {
       const res = await fetch(`${API_BASE}/groups/${id}/members`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch group members');
-      return res.json();
+      return handleResponse<UserDTO[]>(res);
     },
   },
   classes: {
@@ -421,36 +356,33 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to schedule class');
-      return res.json();
+      return handleResponse<LiveClassDTO>(res);
     },
     getUpcoming: async (): Promise<LiveClassDTO[]> => {
       const res = await fetch(`${API_BASE}/classes`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch classes');
-      return res.json();
+      return handleResponse<LiveClassDTO[]>(res);
     },
     getDetails: async (id: string): Promise<LiveClassDTO> => {
       const res = await fetch(`${API_BASE}/classes/${id}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch class details');
-      return res.json();
+      return handleResponse<LiveClassDTO>(res);
     },
     register: async (id: string): Promise<void> => {
       const res = await fetch(`${API_BASE}/classes/${id}/register`, {
         method: 'POST',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to register for class');
+      return handleVoidResponse(res);
     },
     markAttendance: async (classId: string, userId: string, attended: boolean): Promise<void> => {
       const res = await fetch(`${API_BASE}/classes/${classId}/attendance?userId=${userId}&attended=${attended}`, {
         method: 'PUT',
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to mark attendance');
+      return handleVoidResponse(res);
     },
     submitFeedback: async (classId: string, data: { rating: number; comments: string }): Promise<any> => {
       const res = await fetch(`${API_BASE}/classes/${classId}/feedback`, {
@@ -458,22 +390,19 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to submit feedback');
-      return res.json();
+      return handleResponse<any>(res);
     },
     getFeedback: async (classId: string): Promise<any[]> => {
       const res = await fetch(`${API_BASE}/classes/${classId}/feedback`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch feedback');
-      return res.json();
+      return handleResponse<any[]>(res);
     },
     getGroupClasses: async (groupId: string): Promise<LiveClassDTO[]> => {
       const res = await fetch(`${API_BASE}/classes/group/${groupId}`, {
         headers: getHeaders(),
       });
-      if (!res.ok) throw new Error('Failed to fetch group classes');
-      return res.json();
+      return handleResponse<LiveClassDTO[]>(res);
     },
   },
 };
