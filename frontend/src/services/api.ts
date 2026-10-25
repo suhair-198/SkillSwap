@@ -275,6 +275,14 @@ export const api = {
     },
   },
   chat: {
+    sendMessage: async (data: { recipientId?: string; groupId?: string; content: string; mediaUrl?: string }): Promise<MessageDTO> => {
+      const res = await fetch(`${API_BASE}/chat/send`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+      return handleResponse<MessageDTO>(res);
+    },
     getDirectHistory: async (userId: string): Promise<MessageDTO[]> => {
       const res = await fetch(`${API_BASE}/chat/direct/${userId}`, {
         headers: getHeaders(),

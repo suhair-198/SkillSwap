@@ -62,23 +62,30 @@ export const Groups: React.FC = () => {
   };
 
   const handleJoinGroup = async (groupId: string) => {
+    const grp = publicGroups.find(g => g.id === groupId);
+    if (grp) {
+      setMyGroups(prev => [grp, ...prev]);
+    }
     try {
       await api.groups.join(groupId);
-      await fetchGroupsData();
+      fetchGroupsData();
     } catch (err: any) {
       setErrorMsg(`Failed to join group: ${err.message}`);
+      fetchGroupsData();
       setTimeout(() => setErrorMsg(''), 5000);
     }
   };
 
   const handleLeaveGroup = async (groupId: string) => {
     if (!confirm('Leave this group?')) return;
+    setMyGroups(prev => prev.filter(g => g.id !== groupId));
+    setSelectedGroup(null);
     try {
       await api.groups.leave(groupId);
-      setSelectedGroup(null);
-      await fetchGroupsData();
+      fetchGroupsData();
     } catch (err: any) {
       setErrorMsg(`Failed to leave group: ${err.message}`);
+      fetchGroupsData();
       setTimeout(() => setErrorMsg(''), 5000);
     }
   };

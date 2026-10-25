@@ -19,23 +19,23 @@ class WebSocketService {
       return; // Already initialized
     }
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
     this.client = new Client({
+      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       webSocketFactory: () => {
         const wsUrl = typeof window !== 'undefined' && window.location.port === '5173'
           ? '/ws'
           : (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') + '/ws' : 'http://localhost:8080/ws');
         return new SockJS(wsUrl);
       },
-      debug: (str) => {
-        // Uncomment for debug logs
-        // console.log(str);
-      },
-      reconnectDelay: 5000,
+      debug: () => {},
+      reconnectDelay: 3000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
     });
 
-    this.client.onConnect = (frame) => {
+    this.client.onConnect = () => {
       this.connected = true;
       this.connectionCallbacks.forEach(cb => cb(true));
       console.log('Connected to STOMP Broker');
@@ -49,7 +49,6 @@ class WebSocketService {
 
     this.client.onStompError = (frame) => {
       console.error('Broker reported error: ' + frame.headers['message']);
-      console.error('Additional details: ' + frame.body);
     };
 
     this.client.activate();
@@ -70,40 +69,91 @@ class WebSocketService {
     return this.connected;
   }
 
-  // Subscribe to user-specific private messages
+  // Subscribe to user-specific private messages across both topic and queue endpoints
   subscribeToPrivateMessages(userId: string, callback: (message: MessageDTO) => void) {
     if (!this.client || !this.connected) return null;
 
-    const destination = `/user/${userId}/queue/messages`;
-    if (this.subscriptions[destination]) {
-      return this.subscriptions[destination];
-    }
-
-    const sub = this.client.subscribe(destination, (message: IMessage) => {
-      const msg: MessageDTO = JSON.parse(message.body);
+    const seenIds = new Set<string>();
+    const safeCallback = (msg: MessageDTO) => {
+      if (msg && msg.id) {
+        if (seenIds.has(msg.id)) return;
+        seenIds.add(msg.id);
+      }
       callback(msg);
+    };
+
+    const destTopic = `/topic/user.${userId}`;
+    const destQueue = `/user/${userId}/queue/messages`;
+    const destUserQueue = `/user/queue/messages`;
+
+    const subTopic = this.client.subscribe(destTopic, (message: IMessage) => {
+      try {
+        const msg: MessageDTO = JSON.parse(message.body);
+        safeCallback(msg);
+      } catch (e) {
+        console.error('Error parsing STOMP topic message', e);
+      }
     });
 
-    this.subscriptions[destination] = sub;
-    return sub;
+    let subQueue: any = null;
+    try {
+      subQueue = this.client.subscribe(destQueue, (message: IMessage) => {
+        try {
+          const msg: MessageDTO = JSON.parse(message.body);
+          safeCallback(msg);
+        } catch (e) {}
+      });
+    } catch (e) {}
+
+    let subUserQueue: any = null;
+    try {
+      subUserQueue = this.client.subscribe(destUserQueue, (message: IMessage) => {
+        try {
+          const msg: MessageDTO = JSON.parse(message.body);
+          safeCallback(msg);
+        } catch (e) {}
+      });
+    } catch (e) {}
+
+    return {
+      unsubscribe: () => {
+        try { subTopic?.unsubscribe(); } catch (e) {}
+        try { subQueue?.unsubscribe(); } catch (e) {}
+        try { subUserQueue?.unsubscribe(); } catch (e) {}
+      }
+    };
   }
 
   // Subscribe to user-specific private typing indicators
   subscribeToPrivateTyping(userId: string, callback: (data: { senderId: string; isTyping: boolean }) => void) {
     if (!this.client || !this.connected) return null;
 
-    const destination = `/user/${userId}/queue/typing`;
-    if (this.subscriptions[destination]) {
-      return this.subscriptions[destination];
-    }
+    const destTopic = `/topic/user.${userId}.typing`;
+    const destQueue = `/user/${userId}/queue/typing`;
 
-    const sub = this.client.subscribe(destination, (message: IMessage) => {
-      const data = JSON.parse(message.body);
-      callback(data);
+    const subTopic = this.client.subscribe(destTopic, (message: IMessage) => {
+      try {
+        const data = JSON.parse(message.body);
+        callback(data);
+      } catch (e) {}
     });
 
-    this.subscriptions[destination] = sub;
-    return sub;
+    let subQueue: any = null;
+    try {
+      subQueue = this.client.subscribe(destQueue, (message: IMessage) => {
+        try {
+          const data = JSON.parse(message.body);
+          callback(data);
+        } catch (e) {}
+      });
+    } catch (e) {}
+
+    return {
+      unsubscribe: () => {
+        try { subTopic?.unsubscribe(); } catch (e) {}
+        try { subQueue?.unsubscribe(); } catch (e) {}
+      }
+    };
   }
 
   // Subscribe to group chat channel
@@ -116,8 +166,10 @@ class WebSocketService {
     }
 
     const sub = this.client.subscribe(destination, (message: IMessage) => {
-      const msg: MessageDTO = JSON.parse(message.body);
-      callback(msg);
+      try {
+        const msg: MessageDTO = JSON.parse(message.body);
+        callback(msg);
+      } catch (e) {}
     });
 
     this.subscriptions[destination] = sub;
@@ -134,8 +186,10 @@ class WebSocketService {
     }
 
     const sub = this.client.subscribe(destination, (message: IMessage) => {
-      const data = JSON.parse(message.body);
-      callback(data);
+      try {
+        const data = JSON.parse(message.body);
+        callback(data);
+      } catch (e) {}
     });
 
     this.subscriptions[destination] = sub;
@@ -152,8 +206,10 @@ class WebSocketService {
     }
 
     const sub = this.client.subscribe(destination, (message: IMessage) => {
-      const data = JSON.parse(message.body);
-      callback(data);
+      try {
+        const data = JSON.parse(message.body);
+        callback(data);
+      } catch (e) {}
     });
 
     this.subscriptions[destination] = sub;

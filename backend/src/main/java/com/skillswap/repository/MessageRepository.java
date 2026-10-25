@@ -12,10 +12,11 @@ import java.util.UUID;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, UUID> {
     
-    @Query("SELECT m FROM Message m WHERE (m.sender.id = :user1 AND m.recipient.id = :user2) AND m.group IS NULL ORDER BY m.createdAt ASC")
+    @Query("SELECT m FROM Message m JOIN FETCH m.sender s LEFT JOIN FETCH m.recipient r WHERE ((s.id = :user1 AND r.id = :user2) OR (s.id = :user2 AND r.id = :user1)) AND m.group IS NULL ORDER BY m.createdAt ASC")
     List<Message> findDirectMessages(@Param("user1") UUID user1, @Param("user2") UUID user2);
     
-    List<Message> findByGroupIdOrderByCreatedAtAsc(UUID groupId);
+    @Query("SELECT m FROM Message m JOIN FETCH m.sender s WHERE m.group.id = :groupId ORDER BY m.createdAt ASC")
+    List<Message> findByGroupIdOrderByCreatedAtAsc(@Param("groupId") UUID groupId);
     
     @Query("SELECT m FROM Message m WHERE m.recipient.id = :recipientId AND m.read = false")
     List<Message> findUnreadMessagesForRecipient(@Param("recipientId") UUID recipientId);

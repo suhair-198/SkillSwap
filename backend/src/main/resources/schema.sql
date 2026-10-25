@@ -158,3 +158,29 @@ CREATE TABLE IF NOT EXISTS skill_pacts (
 INSERT INTO roles (id, name) VALUES (1, 'ROLE_STUDENT') ON CONFLICT (name) DO NOTHING;
 INSERT INTO roles (id, name) VALUES (2, 'ROLE_ADMIN') ON CONFLICT (name) DO NOTHING;
 INSERT INTO roles (id, name) VALUES (3, 'ROLE_MODERATOR') ON CONFLICT (name) DO NOTHING;
+
+
+-- Performance Optimization Indexes
+CREATE INDEX IF NOT EXISTS idx_connections_requester ON connections (requester_id);
+CREATE INDEX IF NOT EXISTS idx_connections_receiver ON connections (receiver_id);
+CREATE INDEX IF NOT EXISTS idx_connections_status ON connections (status);
+CREATE INDEX IF NOT EXISTS idx_connections_req_status ON connections (requester_id, status);
+CREATE INDEX IF NOT EXISTS idx_connections_rec_status ON connections (receiver_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages (sender_id);
+CREATE INDEX IF NOT EXISTS idx_messages_recipient ON messages (recipient_id);
+CREATE INDEX IF NOT EXISTS idx_messages_group ON messages (group_id);
+CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages (created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_read ON messages (is_read);
+CREATE INDEX IF NOT EXISTS idx_messages_rec_read ON messages (recipient_id, is_read);
+
+CREATE INDEX IF NOT EXISTS idx_groups_creator ON learning_groups (creator_id);
+CREATE INDEX IF NOT EXISTS idx_groups_private ON learning_groups (is_private);
+
+CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members (group_id);
+CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_user_skills_user ON user_skills (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_skills_skill ON user_skills (skill_id);
+CREATE INDEX IF NOT EXISTS idx_user_skills_known ON user_skills (is_known);
+CREATE INDEX IF NOT EXISTS idx_user_skills_user_known ON user_skills (user_id, is_known);

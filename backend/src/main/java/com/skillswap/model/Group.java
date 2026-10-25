@@ -4,7 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "learning_groups")
+@Table(
+    name = "learning_groups",
+    indexes = {
+        @Index(name = "idx_grp_creator", columnList = "creator_id"),
+        @Index(name = "idx_grp_private", columnList = "is_private")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor

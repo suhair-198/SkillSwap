@@ -6,7 +6,11 @@ import lombok.*;
 @Entity
 @Table(
     name = "group_members",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"group_id", "user_id"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"group_id", "user_id"}),
+    indexes = {
+        @Index(name = "idx_gm_group", columnList = "group_id"),
+        @Index(name = "idx_gm_user", columnList = "user_id")
+    }
 )
 @Getter
 @Setter

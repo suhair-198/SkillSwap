@@ -8,10 +8,11 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:${SUPABASE_DB_PASSWORD:}}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
     hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 5
-      minimum-idle: 1
+      connection-timeout: 20000
+      maximum-pool-size: 8
+      minimum-idle: 2
       idle-timeout: 300000
+      max-lifetime: 600000
 
   jpa:
     hibernate:
@@ -20,10 +21,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: false
         jdbc:
           lob:
             non_contextual_creation: true
+          batch_size: 25
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
     open-in-view: false
 
   sql:

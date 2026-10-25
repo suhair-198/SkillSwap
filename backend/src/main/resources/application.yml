@@ -11,9 +11,9 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:password}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
     hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 2
+      connection-timeout: 20000
+      maximum-pool-size: 15
+      minimum-idle: 3
       idle-timeout: 300000
       max-lifetime: 600000
 
@@ -24,9 +24,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
-        format_sql: true
+        format_sql: false
         jdbc:
+          batch_size: 25
           time_zone: UTC
+        order_inserts: true
+        order_updates: true
     open-in-view: false
 
   sql:

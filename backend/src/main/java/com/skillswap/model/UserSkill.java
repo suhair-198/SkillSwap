@@ -6,7 +6,13 @@ import lombok.*;
 @Entity
 @Table(
     name = "user_skills",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "skill_id", "is_known"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "skill_id", "is_known"}),
+    indexes = {
+        @Index(name = "idx_us_user", columnList = "user_id"),
+        @Index(name = "idx_us_skill", columnList = "skill_id"),
+        @Index(name = "idx_us_known", columnList = "is_known"),
+        @Index(name = "idx_us_user_known", columnList = "user_id, is_known")
+    }
 )
 @Getter
 @Setter

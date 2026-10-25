@@ -53,20 +53,32 @@ export const Connections: React.FC = () => {
   };
 
   const handleAcceptRequest = async (connectionId: string) => {
+    const targetReq = receivedRequests.find(r => r.id === connectionId);
+    // Optimistic UI update: instantly update state without waiting
+    setReceivedRequests(prev => prev.filter(r => r.id !== connectionId));
+    if (targetReq?.requester) {
+      setMyConnections(prev => [targetReq.requester, ...prev]);
+    }
     try {
       await api.connections.acceptRequest(connectionId);
-      await fetchConnectionsData();
+      // Sync fresh data in background
+      fetchConnectionsData();
     } catch (err) {
+      // Revert if failed
       alert('Failed to accept request');
+      fetchConnectionsData();
     }
   };
 
   const handleDeclineRequest = async (connectionId: string) => {
+    // Optimistic UI update: instantly update state
+    setReceivedRequests(prev => prev.filter(r => r.id !== connectionId));
     try {
       await api.connections.declineRequest(connectionId);
-      await fetchConnectionsData();
+      fetchConnectionsData();
     } catch (err) {
       alert('Failed to decline request');
+      fetchConnectionsData();
     }
   };
 

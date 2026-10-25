@@ -116,7 +116,7 @@ public class GroupServiceImpl implements GroupService {
     public GroupDTO getGroupDetails(UUID groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
-        long memberCount = groupMemberRepository.findByGroupId(groupId).size();
+        long memberCount = groupMemberRepository.countByGroupId(groupId);
         return GroupDTO.fromGroup(group, memberCount);
     }
 
@@ -125,7 +125,7 @@ public class GroupServiceImpl implements GroupService {
     public List<GroupDTO> getAllGroups() {
         return groupRepository.findAllPublicGroups().stream()
                 .map(g -> {
-                    long count = groupMemberRepository.findByGroupId(g.getId()).size();
+                    long count = groupMemberRepository.countByGroupId(g.getId());
                     return GroupDTO.fromGroup(g, count);
                 })
                 .collect(Collectors.toList());
@@ -138,11 +138,11 @@ public class GroupServiceImpl implements GroupService {
             throw new ResourceNotFoundException("User not found");
         }
         
-        List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
+        List<GroupMember> memberships = groupMemberRepository.findByUserIdWithGroupAndCreator(userId);
         return memberships.stream()
                 .map(m -> {
                     Group g = m.getGroup();
-                    long count = groupMemberRepository.findByGroupId(g.getId()).size();
+                    long count = groupMemberRepository.countByGroupId(g.getId());
                     return GroupDTO.fromGroup(g, count);
                 })
                 .collect(Collectors.toList());

@@ -115,16 +115,21 @@ export const Chat: React.FC = () => {
     // 1. Subscribe to direct private messages
     const privateMsgSub = wsService.subscribeToPrivateMessages(user.id, (newMsg) => {
       if (selectedPeer && (newMsg.sender.id === selectedPeer.id || newMsg.recipient?.id === selectedPeer.id)) {
-        setMessages(prev => [...prev, newMsg]);
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
         if (newMsg.sender.id === selectedPeer.id) {
-          api.chat.markAsRead(selectedPeer.id);
+          api.chat.markAsRead(selectedPeer.id).catch(() => {});
         }
       } else {
         const senderId = newMsg.sender.id;
-        setUnreadCounts(prev => ({
-          ...prev,
-          [senderId]: (prev[senderId] || 0) + 1
-        }));
+        if (senderId !== user.id) {
+          setUnreadCounts(prev => ({
+            ...prev,
+            [senderId]: (prev[senderId] || 0) + 1
+          }));
+        }
       }
     });
 
@@ -231,15 +236,12 @@ export const Chat: React.FC = () => {
     }, 2000);
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageText.trim() || !user) return;
+    const text = messageText.trim();
+    if (!text || !user) return;
 
-    if (selectedPeer) {
-      wsService.sendPrivateMessage(user.id, selectedPeer.id, messageText.trim());
-    } else if (selectedGroup) {
-      wsService.sendGroupMessage(user.id, selectedGroup.id, messageText.trim());
-    }
+    setMessageText('');
 
     const recipientId = selectedPeer ? selectedPeer.id : null;
     const groupId = selectedGroup ? selectedGroup.id : null;
@@ -247,7 +249,34 @@ export const Chat: React.FC = () => {
     isTypingStateRef.current = false;
     wsService.sendTypingStatus(user.id, user.fullName, recipientId, groupId, false);
 
-    setMessageText('');
+    try {
+      if (selectedPeer) {
+        const saved = await api.chat.sendMessage({
+          recipientId: selectedPeer.id,
+          content: text
+        });
+        setMessages(prev => {
+          if (prev.some(m => m.id === saved.id)) return prev;
+          return [...prev, saved];
+        });
+      } else if (selectedGroup) {
+        const saved = await api.chat.sendMessage({
+          groupId: selectedGroup.id,
+          content: text
+        });
+        setMessages(prev => {
+          if (prev.some(m => m.id === saved.id)) return prev;
+          return [...prev, saved];
+        });
+      }
+    } catch (err) {
+      console.warn('REST message sending failed, falling back to WebSocket publish', err);
+      if (selectedPeer) {
+        wsService.sendPrivateMessage(user.id, selectedPeer.id, text);
+      } else if (selectedGroup) {
+        wsService.sendGroupMessage(user.id, selectedGroup.id, text);
+      }
+    }
   };
 
   const formatMessageTime = (dateString: string) => {

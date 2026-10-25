@@ -1,10 +1,13 @@
 package com.skillswap.controller;
 
 import com.skillswap.dto.MessageDTO;
+import com.skillswap.dto.MessageRequest;
+import com.skillswap.exception.BadRequestException;
 import com.skillswap.security.UserPrincipal;
 import com.skillswap.service.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,10 +19,45 @@ import java.util.UUID;
 public class ChatController {
 
     private final ChatService chatService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public ChatController(ChatService chatService) {
+    public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate) {
         this.chatService = chatService;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    @PostMapping("/send")
+    public ResponseEntity<MessageDTO> sendMessage(@AuthenticationPrincipal UserPrincipal principal,
+                                                  @RequestBody MessageRequest request) {
+        MessageDTO savedMessage;
+        if (request.getRecipientId() != null) {
+            savedMessage = chatService.savePrivateMessage(
+                    principal.getId(),
+                    request.getRecipientId(),
+                    request.getContent(),
+                    request.getMediaUrl()
+            );
+            
+            // Broadcast in real-time over topic for instant reliable client delivery
+            messagingTemplate.convertAndSend("/topic/user." + request.getRecipientId(), savedMessage);
+            messagingTemplate.convertAndSend("/topic/user." + principal.getId(), savedMessage);
+            try {
+                messagingTemplate.convertAndSendToUser(request.getRecipientId().toString(), "/queue/messages", savedMessage);
+                messagingTemplate.convertAndSendToUser(principal.getId().toString(), "/queue/messages", savedMessage);
+            } catch (Exception ignored) {}
+        } else if (request.getGroupId() != null) {
+            savedMessage = chatService.saveGroupMessage(
+                    principal.getId(),
+                    request.getGroupId(),
+                    request.getContent(),
+                    request.getMediaUrl()
+            );
+            messagingTemplate.convertAndSend("/topic/group." + request.getGroupId(), savedMessage);
+        } else {
+            throw new BadRequestException("Either recipientId or groupId must be provided");
+        }
+        return ResponseEntity.ok(savedMessage);
     }
 
     @GetMapping("/direct/{userId}")

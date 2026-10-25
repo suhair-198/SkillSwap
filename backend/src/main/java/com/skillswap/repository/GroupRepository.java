@@ -12,6 +12,6 @@ import java.util.UUID;
 public interface GroupRepository extends JpaRepository<Group, UUID> {
     List<Group> findByNameContainingIgnoreCase(String name);
     
-    @Query("SELECT g FROM Group g WHERE g.isPrivate = false")
+    @Query("SELECT g FROM Group g JOIN FETCH g.creator WHERE g.isPrivate = false")
     List<Group> findAllPublicGroups();
 }
