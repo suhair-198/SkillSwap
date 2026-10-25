@@ -94,8 +94,8 @@ export const Connections: React.FC = () => {
         api.skills.getMy(),
         api.skills.getUserSkills(peer.id)
       ]);
-      setMyKnownSkills(mySkills.filter(s => s.isKnown));
-      setPeerKnownSkills(peerSkills.filter(s => s.isKnown));
+      setMyKnownSkills(mySkills.filter(s => Boolean(s.isKnown ?? s.known)));
+      setPeerKnownSkills(peerSkills.filter(s => Boolean(s.isKnown ?? s.known)));
     } catch (err) {
       console.error('Error loading skills for pact', err);
     }

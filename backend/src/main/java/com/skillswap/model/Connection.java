@@ -6,14 +6,7 @@ import lombok.*;
 @Entity
 @Table(
     name = "connections",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"requester_id", "receiver_id"}),
-    indexes = {
-        @Index(name = "idx_conn_requester", columnList = "requester_id"),
-        @Index(name = "idx_conn_receiver", columnList = "receiver_id"),
-        @Index(name = "idx_conn_status", columnList = "status"),
-        @Index(name = "idx_conn_req_status", columnList = "requester_id, status"),
-        @Index(name = "idx_conn_rec_status", columnList = "receiver_id, status")
-    }
+    uniqueConstraints = @UniqueConstraint(columnNames = {"requester_id", "receiver_id"})
 )
 @Getter
 @Setter

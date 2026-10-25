@@ -146,7 +146,7 @@ export const Groups: React.FC = () => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 mt-0.5">by {g.creator.fullName}</p>
+            <p className="text-xs text-gray-400 mt-0.5">by {g.creator?.fullName || 'Community Member'}</p>
           </div>
         </div>
 
@@ -227,7 +227,7 @@ export const Groups: React.FC = () => {
                   <div className="pb-1">
                     <h2 className="text-xl font-black text-gray-900">{selectedGroup.name}</h2>
                     <p className="text-sm text-gray-500 mt-0.5">
-                      Created by <span className="text-[#f97316] font-semibold">{selectedGroup.creator.fullName}</span>
+                      Created by <span className="text-[#f97316] font-semibold">{selectedGroup.creator?.fullName || 'Community Member'}</span>
                     </p>
                     <p className="text-sm text-gray-500 mt-1 max-w-lg">{selectedGroup.description}</p>
                   </div>
@@ -266,7 +266,7 @@ export const Groups: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {groupMembers.map((m) => {
-                    const isCreator = m.id === selectedGroup.creator.id;
+                    const isCreator = m.id === (selectedGroup.creator?.id || selectedGroup.creatorId);
                     return (
                       <div key={m.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl">
                         <div className="avatar w-9 h-9 text-sm font-black flex-shrink-0">

@@ -85,7 +85,7 @@ export const Profile: React.FC = () => {
     if (!skillName.trim()) return;
     setAddingSkill(true);
     try {
-      await api.skills.add({ skillName: skillName.trim(), category, proficiencyLevel: proficiency, known: isKnown });
+      await api.skills.add({ skillName: skillName.trim(), category, proficiencyLevel: proficiency, known: isKnown, isKnown });
       setSkillName('');
       setIsAddingSkill(false);
       await fetchSkills();
@@ -112,8 +112,8 @@ export const Profile: React.FC = () => {
 
   if (!user) return null;
 
-  const knownSkills = skills.filter(s => s.isKnown);
-  const wantedSkills = skills.filter(s => !s.isKnown);
+  const knownSkills = skills.filter(s => Boolean(s.isKnown ?? s.known));
+  const wantedSkills = skills.filter(s => !Boolean(s.isKnown ?? s.known));
   const xpPercent = Math.min(((user.xp || 0) % 1000) / 10, 100);
 
   return (

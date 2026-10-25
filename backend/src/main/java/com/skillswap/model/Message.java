@@ -4,17 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(
-    name = "messages",
-    indexes = {
-        @Index(name = "idx_msg_sender", columnList = "sender_id"),
-        @Index(name = "idx_msg_recipient", columnList = "recipient_id"),
-        @Index(name = "idx_msg_group", columnList = "group_id"),
-        @Index(name = "idx_msg_created_at", columnList = "created_at"),
-        @Index(name = "idx_msg_read", columnList = "is_read"),
-        @Index(name = "idx_msg_rec_read", columnList = "recipient_id, is_read")
-    }
-)
+@Table(name = "messages")
 @Getter
 @Setter
 @NoArgsConstructor

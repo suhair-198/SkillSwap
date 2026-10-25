@@ -18,6 +18,7 @@ public class GroupDTO {
     private String name;
     private String description;
     private UUID creatorId;
+    private UserDTO creator;
     private boolean isPrivate;
     private LocalDateTime createdAt;
     private long memberCount;
@@ -28,7 +29,8 @@ public class GroupDTO {
                 .id(group.getId())
                 .name(group.getName())
                 .description(group.getDescription())
-                .creatorId(group.getCreator().getId())
+                .creatorId(group.getCreator() != null ? group.getCreator().getId() : null)
+                .creator(group.getCreator() != null ? UserDTO.fromUser(group.getCreator()) : null)
                 .isPrivate(group.isPrivate())
                 .createdAt(group.getCreatedAt())
                 .memberCount(memberCount)

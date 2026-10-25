@@ -1,5 +1,5 @@
-export interface Role {
-  id?: number;
+export interface RoleDTO {
+  id: number;
   name: string;
 }
 
@@ -15,7 +15,7 @@ export interface UserDTO {
   level: number;
   reputation: number;
   currentStreak: number;
-  roles?: Role[];
+  roles: string[];
 }
 
 export interface SkillDTO {
@@ -30,6 +30,7 @@ export interface UserSkillDTO {
   skill: SkillDTO;
   proficiencyLevel: string; // BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
   isKnown: boolean; // true = teaches, false = learns
+  known?: boolean;
 }
 
 export interface MatchResponse {
@@ -63,9 +64,11 @@ export interface GroupDTO {
   id: string;
   name: string;
   description?: string;
-  creator: UserDTO;
+  creatorId?: string;
+  creator?: UserDTO;
   isPrivate: boolean;
   createdAt: string;
+  memberCount?: number;
 }
 
 export interface LiveClassDTO {
@@ -87,8 +90,10 @@ export interface SkillPactDTO {
   userB: UserDTO;
   skillA: SkillDTO;
   skillB: SkillDTO;
-  status: string; // REQUESTED, ACCEPTED, ACTIVE, COMPLETED, CANCELLED
+  status: string; // ACTIVE, COMPLETED, CANCELLED
   goals?: string;
-  sessionsCount: number;
+  sessionsCount?: number;
+  milestones?: string;
   createdAt: string;
+  updatedAt?: string;
 }

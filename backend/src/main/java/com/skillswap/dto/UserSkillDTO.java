@@ -1,5 +1,6 @@
 package com.skillswap.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.skillswap.model.UserSkill;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,14 @@ public class UserSkillDTO {
     private UUID userId;
     private SkillDTO skill;
     private String proficiencyLevel;
+
+    @JsonProperty("isKnown")
     private boolean isKnown;
+
+    @JsonProperty("known")
+    public boolean getKnown() {
+        return isKnown;
+    }
 
     public static UserSkillDTO fromUserSkill(UserSkill userSkill) {
         if (userSkill == null) return null;

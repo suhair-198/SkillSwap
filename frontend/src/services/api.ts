@@ -165,11 +165,16 @@ export const api = {
       });
       return handleResponse<UserSkillDTO[]>(res);
     },
-    add: async (data: { skillName: string; category: string; proficiencyLevel: string; known: boolean }): Promise<UserSkillDTO> => {
+    add: async (data: { skillName: string; category: string; proficiencyLevel: string; known?: boolean; isKnown?: boolean }): Promise<UserSkillDTO> => {
+      const isKnownVal = data.isKnown !== undefined ? data.isKnown : data.known ?? true;
       const res = await fetch(`${API_BASE}/skills/my`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          known: isKnownVal,
+          isKnown: isKnownVal,
+        }),
       });
       return handleResponse<UserSkillDTO>(res);
     },
