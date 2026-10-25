@@ -9,17 +9,19 @@ import {
   Check, 
   X, 
   Clock, 
-  Sparkles,
-  Target,
-  ChevronRight
+  Search,
+  UserPlus
 } from 'lucide-react';
 
 export const Connections: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'my' | 'received' | 'sent'>('my');
+  const [activeTab, setActiveTab] = useState<'my' | 'received' | 'sent' | 'discover'>('my');
   const [myConnections, setMyConnections] = useState<UserDTO[]>([]);
   const [receivedRequests, setReceivedRequests] = useState<ConnectionDTO[]>([]);
   const [sentRequests, setSentRequests] = useState<ConnectionDTO[]>([]);
+  const [discoverPeers, setDiscoverPeers] = useState<UserDTO[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Propose Pact State
@@ -37,14 +39,16 @@ export const Connections: React.FC = () => {
 
   const fetchConnectionsData = async () => {
     try {
-      const [connections, received, sent] = await Promise.all([
+      const [connections, received, sent, allUsers] = await Promise.all([
         api.connections.getMy(),
         api.connections.getPendingReceived(),
-        api.connections.getPendingSent()
+        api.connections.getPendingSent(),
+        api.users.search()
       ]);
       setMyConnections(connections);
       setReceivedRequests(received);
       setSentRequests(sent);
+      setDiscoverPeers(allUsers);
     } catch (err) {
       console.error('Error fetching connections', err);
     } finally {
@@ -52,26 +56,44 @@ export const Connections: React.FC = () => {
     }
   };
 
+  const handleSearchPeers = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSearching(true);
+    try {
+      const results = await api.users.search(searchQuery.trim() || undefined);
+      setDiscoverPeers(results);
+    } catch (err) {
+      console.error('Error searching peers', err);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSendConnection = async (receiverId: string) => {
+    try {
+      const newConn = await api.connections.sendRequest(receiverId);
+      setSentRequests(prev => [...prev, newConn]);
+    } catch (err: any) {
+      alert(err.message || 'Failed to send connection request');
+    }
+  };
+
   const handleAcceptRequest = async (connectionId: string) => {
     const targetReq = receivedRequests.find(r => r.id === connectionId);
-    // Optimistic UI update: instantly update state without waiting
     setReceivedRequests(prev => prev.filter(r => r.id !== connectionId));
     if (targetReq?.requester) {
       setMyConnections(prev => [targetReq.requester, ...prev]);
     }
     try {
       await api.connections.acceptRequest(connectionId);
-      // Sync fresh data in background
       fetchConnectionsData();
     } catch (err) {
-      // Revert if failed
       alert('Failed to accept request');
       fetchConnectionsData();
     }
   };
 
   const handleDeclineRequest = async (connectionId: string) => {
-    // Optimistic UI update: instantly update state
     setReceivedRequests(prev => prev.filter(r => r.id !== connectionId));
     try {
       await api.connections.declineRequest(connectionId);
@@ -120,6 +142,10 @@ export const Connections: React.FC = () => {
     }
   };
 
+  const isConnected = (userId: string) => myConnections.some(c => c.id === userId);
+  const isPendingSent = (userId: string) => sentRequests.some(r => r.receiver?.id === userId);
+  const isPendingReceived = (userId: string) => receivedRequests.some(r => r.requester?.id === userId);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -141,6 +167,16 @@ export const Connections: React.FC = () => {
           }`}
         >
           Connections ({myConnections.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('discover')}
+          className={`px-6 py-3 font-bold text-sm transition-all duration-200 border-b-2 ${
+            activeTab === 'discover' 
+              ? 'text-[#ff6b00] border-[#ff6b00]' 
+              : 'text-slate-500 border-transparent hover:text-[#0f172a]'
+          }`}
+        >
+          Discover Peers
         </button>
         <button
           onClick={() => setActiveTab('received')}
@@ -166,13 +202,119 @@ export const Connections: React.FC = () => {
 
       {/* Tab Panels */}
       <div>
+        {activeTab === 'discover' && (
+          <div className="space-y-6">
+            <form onSubmit={handleSearchPeers} className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search peers by name, college, or department..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#ff6b00]"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={searching}
+                className="bg-[#ff6b00] hover:bg-[#e05f00] text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2"
+              >
+                <Search className="h-4 w-4" />
+                <span>Search</span>
+              </button>
+            </form>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {discoverPeers.length === 0 ? (
+                <div className="col-span-full text-center py-16 border border-dashed border-slate-300 rounded-2xl bg-white shadow-xs">
+                  <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-600 font-bold text-sm">No peers found.</p>
+                </div>
+              ) : (
+                discoverPeers.map((peer) => {
+                  const connected = isConnected(peer.id);
+                  const pendingSent = isPendingSent(peer.id);
+                  const pendingRecv = isPendingReceived(peer.id);
+
+                  return (
+                    <div 
+                      key={peer.id}
+                      className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-orange-300 transition-all duration-200"
+                    >
+                      <div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-bold text-white text-lg shadow-glow">
+                            {peer.fullName ? peer.fullName.charAt(0) : '?'}
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-[#0f172a] text-base">{peer.fullName}</h4>
+                            <p className="text-xs text-slate-500 font-medium">
+                              {peer.college || 'College not set'} • {peer.department || 'Department not set'}
+                            </p>
+                          </div>
+                        </div>
+                        {peer.bio && (
+                          <p className="text-xs text-slate-600 mb-4 line-clamp-2 italic font-medium">"{peer.bio}"</p>
+                        )}
+                      </div>
+
+                      <div className="pt-2">
+                        {connected ? (
+                          <div className="flex gap-2">
+                            <span className="flex-1 text-center py-2 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200">
+                              Connected
+                            </span>
+                            <button
+                              onClick={() => navigate(`/chat?userId=${peer.id}`)}
+                              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
+                            >
+                              Chat
+                            </button>
+                          </div>
+                        ) : pendingSent ? (
+                          <button disabled className="w-full py-2 bg-slate-100 border border-slate-200 text-slate-400 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>Request Pending</span>
+                          </button>
+                        ) : pendingRecv ? (
+                          <button
+                            onClick={() => setActiveTab('received')}
+                            className="w-full py-2 bg-orange-50 border border-orange-200 text-orange-700 rounded-xl text-xs font-bold"
+                          >
+                            Respond to Request
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleSendConnection(peer.id)}
+                            className="w-full py-2 bg-gradient-to-r from-[#ff6b00] to-orange-600 hover:opacity-95 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-glow"
+                          >
+                            <UserPlus className="h-3.5 w-3.5" />
+                            <span>Send Connection Request</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
         {activeTab === 'my' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {myConnections.length === 0 ? (
               <div className="col-span-full text-center py-16 border border-dashed border-slate-300 rounded-2xl bg-white shadow-xs">
                 <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                 <p className="text-slate-600 font-bold text-sm">No connections found yet.</p>
-                <p className="text-slate-500 text-xs mt-1">Explore matching peers on the Dashboard to connect!</p>
+                <p className="text-slate-500 text-xs mt-1">Explore matching peers or discover users to connect!</p>
+                <button
+                  onClick={() => setActiveTab('discover')}
+                  className="mt-4 px-4 py-2 bg-[#ff6b00] text-white text-xs font-bold rounded-xl"
+                >
+                  Discover Peers
+                </button>
               </div>
             ) : (
               myConnections.map((peer) => (
@@ -183,7 +325,7 @@ export const Connections: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-bold text-white text-lg shadow-glow">
-                        {peer.fullName.charAt(0)}
+                        {peer.fullName ? peer.fullName.charAt(0) : '?'}
                       </div>
                       <div>
                         <h4 className="font-extrabold text-[#0f172a] text-base">{peer.fullName}</h4>
@@ -233,11 +375,11 @@ export const Connections: React.FC = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#ff6b00] to-orange-400 flex items-center justify-center font-bold text-white text-lg shadow-glow">
-                      {req.requester.fullName.charAt(0)}
+                      {req.requester?.fullName ? req.requester.fullName.charAt(0) : '?'}
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#0f172a] text-sm">{req.requester.fullName}</h4>
-                      <p className="text-xs text-slate-500 font-medium">{req.requester.college} • {req.requester.department}</p>
+                      <h4 className="font-bold text-[#0f172a] text-sm">{req.requester?.fullName}</h4>
+                      <p className="text-xs text-slate-500 font-medium">{req.requester?.college} • {req.requester?.department}</p>
                     </div>
                   </div>
 
@@ -278,11 +420,11 @@ export const Connections: React.FC = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-xl bg-slate-200 flex items-center justify-center font-bold text-[#0f172a] text-lg">
-                      {req.receiver.fullName.charAt(0)}
+                      {req.receiver?.fullName ? req.receiver.fullName.charAt(0) : '?'}
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#0f172a] text-sm">{req.receiver.fullName}</h4>
-                      <p className="text-xs text-slate-500 font-medium">{req.receiver.college} • {req.receiver.department}</p>
+                      <h4 className="font-bold text-[#0f172a] text-sm">{req.receiver?.fullName}</h4>
+                      <p className="text-xs text-slate-500 font-medium">{req.receiver?.college} • {req.receiver?.department}</p>
                     </div>
                   </div>
 
@@ -311,7 +453,6 @@ export const Connections: React.FC = () => {
 
             <form onSubmit={handleProposePactSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* My Skill A */}
                 <div>
                   <label className="block text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Skill You Will Teach</label>
                   {myKnownSkills.length === 0 ? (
@@ -320,13 +461,13 @@ export const Connections: React.FC = () => {
                     </div>
                   ) : (
                     <select
-                      required
                       value={selectedMySkillId}
                       onChange={(e) => setSelectedMySkillId(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 px-4 outline-none text-sm"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-[#0f172a] font-bold focus:outline-none focus:border-[#ff6b00]"
+                      required
                     >
-                      <option value="">Select a skill...</option>
-                      {myKnownSkills.map(s => (
+                      <option value="">Select skill you teach...</option>
+                      {myKnownSkills.map((s) => (
                         <option key={s.skill.id} value={s.skill.id}>
                           {s.skill.name} ({s.proficiencyLevel})
                         </option>
@@ -335,22 +476,21 @@ export const Connections: React.FC = () => {
                   )}
                 </div>
 
-                {/* Peer Skill B */}
                 <div>
                   <label className="block text-xs font-bold text-[#ff6b00] uppercase tracking-wider mb-2">Skill Peer Will Teach</label>
                   {peerKnownSkills.length === 0 ? (
-                    <div className="text-xs font-bold text-red-600 border border-red-200 rounded-xl p-3 bg-red-50">
-                      Peer has not listed any skills they can teach.
+                    <div className="text-xs font-bold text-amber-600 border border-amber-200 rounded-xl p-3 bg-amber-50">
+                      This peer has not listed any skills to teach yet.
                     </div>
                   ) : (
                     <select
-                      required
                       value={selectedPeerSkillId}
                       onChange={(e) => setSelectedPeerSkillId(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 px-4 outline-none text-sm"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-[#0f172a] font-bold focus:outline-none focus:border-[#ff6b00]"
+                      required
                     >
-                      <option value="">Select a skill...</option>
-                      {peerKnownSkills.map(s => (
+                      <option value="">Select skill they teach...</option>
+                      {peerKnownSkills.map((s) => (
                         <option key={s.skill.id} value={s.skill.id}>
                           {s.skill.name} ({s.proficiencyLevel})
                         </option>
@@ -361,37 +501,30 @@ export const Connections: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Pact Goals & Schedule</label>
-                <div className="relative">
-                  <Target className="absolute top-3 left-3 text-slate-400 h-4 w-4" />
-                  <textarea
-                    rows={4}
-                    required
-                    value={pactGoals}
-                    onChange={(e) => setPactGoals(e.target.value)}
-                    placeholder="e.g. We will meet on Zoom every Monday at 5 PM for Java and Wednesdays at 5 PM for Spanish."
-                    className="w-full bg-slate-50 border border-slate-300 focus:border-[#ff6b00] focus:bg-white text-[#0f172a] font-medium rounded-xl py-3 pl-10 pr-4 outline-none text-sm resize-none"
-                  />
-                </div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Pact Goals & Commitment</label>
+                <textarea
+                  value={pactGoals}
+                  onChange={(e) => setPactGoals(e.target.value)}
+                  placeholder="e.g. Meet twice weekly for 1-hour sessions to build a project together."
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-[#0f172a] font-medium h-24 focus:outline-none focus:border-[#ff6b00]"
+                  required
+                />
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsProposingPact(false);
-                    setSelectedPeer(null);
-                  }}
-                  className="bg-slate-100 border border-slate-300 text-slate-700 font-bold hover:bg-slate-200 rounded-xl py-2.5 px-5 text-sm transition-all"
+                  onClick={() => setIsProposingPact(false)}
+                  className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={!selectedMySkillId || !selectedPeerSkillId}
-                  className="bg-gradient-to-r from-[#ff6b00] to-orange-600 text-white font-extrabold rounded-xl py-2.5 px-6 text-sm hover:brightness-110 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:pointer-events-none"
+                  disabled={myKnownSkills.length === 0 || peerKnownSkills.length === 0}
+                  className="px-5 py-2 bg-gradient-to-r from-[#ff6b00] to-orange-600 text-white rounded-xl text-xs font-extrabold shadow-glow hover:opacity-95 disabled:opacity-50"
                 >
-                  Send Proposal
+                  Confirm & Propose
                 </button>
               </div>
             </form>

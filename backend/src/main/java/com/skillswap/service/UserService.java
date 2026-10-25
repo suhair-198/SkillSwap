@@ -11,4 +11,5 @@ public interface UserService {
     UserDTO updateUserProfile(UUID userId, UserDTO request);
     List<UserDTO> getLeaderboard();
     Map<String, Object> getUserAnalytics(UUID userId);
+    List<UserDTO> searchUsers(UUID currentUserId, String query);
 }

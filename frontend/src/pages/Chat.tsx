@@ -425,7 +425,9 @@ export const Chat: React.FC = () => {
                 </div>
               ) : (
                 messages.map((msg) => {
-                  const isOwnMessage = msg.sender.id === user?.id;
+                  const senderId = msg.sender?.id || (msg as any).senderId;
+                  const senderName = msg.sender?.fullName || (msg as any).senderName || 'Peer';
+                  const isOwnMessage = senderId === user?.id;
                   return (
                     <div 
                       key={msg.id}
@@ -434,14 +436,14 @@ export const Chat: React.FC = () => {
                       {/* Peer avatar in group chat */}
                       {!isOwnMessage && selectedGroup && (
                         <div className="h-8 w-8 rounded-lg bg-slate-200 flex items-center justify-center font-bold text-[#0f172a] text-xs shrink-0 mt-1">
-                          {msg.sender.fullName.charAt(0)}
+                          {senderName.charAt(0)}
                         </div>
                       )}
 
                       <div>
                         {/* Sender name for group chat */}
                         {!isOwnMessage && selectedGroup && (
-                          <div className="text-[10px] text-slate-500 mb-1 ml-1 font-bold">{msg.sender.fullName}</div>
+                          <div className="text-[10px] text-slate-500 mb-1 ml-1 font-bold">{senderName}</div>
                         )}
 
                         <div className={`p-3.5 rounded-2xl text-sm leading-relaxed ${

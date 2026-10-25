@@ -132,6 +132,13 @@ export const api = {
       });
       return handleResponse<UserDTO[]>(res);
     },
+    search: async (query?: string): Promise<UserDTO[]> => {
+      const url = query ? `${API_BASE}/users/search?query=${encodeURIComponent(query)}` : `${API_BASE}/users/search`;
+      const res = await fetch(url, {
+        headers: getHeaders(),
+      });
+      return handleResponse<UserDTO[]>(res);
+    },
     getAnalytics: async (userId?: string): Promise<any> => {
       const url = userId ? `${API_BASE}/users/analytics/${userId}` : `${API_BASE}/users/analytics`;
       const res = await fetch(url, {

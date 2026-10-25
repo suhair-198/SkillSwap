@@ -67,9 +67,22 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserDTO> getLeaderboard() {
-        // Return top 15 users sorted by XP descending
         return userRepository.findAll(Sort.by(Sort.Direction.DESC, "xp")).stream()
                 .limit(15)
+                .map(UserDTO::fromUser)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDTO> searchUsers(UUID currentUserId, String query) {
+        List<User> users;
+        if (query == null || query.trim().isEmpty()) {
+            users = userRepository.findAllExcept(currentUserId);
+        } else {
+            users = userRepository.searchUsers(currentUserId, query.trim());
+        }
+        return users.stream()
                 .map(UserDTO::fromUser)
                 .collect(Collectors.toList());
     }
@@ -80,20 +93,16 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Fetch attended classes
         List<ClassAttendance> attendedRecords = classAttendanceRepository.findByUserId(userId).stream()
                 .filter(ClassAttendance::isAttended)
                 .collect(Collectors.toList());
 
-        // Fetch conducted classes
         List<LiveClass> conductedClasses = liveClassRepository.findByInstructorId(userId);
 
-        // Fetch pacts
         List<SkillPact> userPacts = skillPactRepository.findPactsForUser(userId);
         long completedPacts = userPacts.stream().filter(p -> "COMPLETED".equals(p.getStatus())).count();
         long activePacts = userPacts.stream().filter(p -> "ACTIVE".equals(p.getStatus())).count();
 
-        // Calculate hours
         double learningHours = attendedRecords.stream()
                 .mapToDouble(a -> a.getLiveClass().getDurationMinutes() / 60.0)
                 .sum();

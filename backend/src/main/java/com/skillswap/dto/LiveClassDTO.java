@@ -19,6 +19,7 @@ public class LiveClassDTO {
     private String description;
     private UserDTO instructor;
     private UUID groupId;
+    private GroupDTO group;
     private LocalDateTime startTime;
     private int durationMinutes;
     private String meetingPlatform;
@@ -33,6 +34,7 @@ public class LiveClassDTO {
                 .description(liveClass.getDescription())
                 .instructor(UserDTO.fromUser(liveClass.getInstructor()))
                 .groupId(liveClass.getGroup() != null ? liveClass.getGroup().getId() : null)
+                .group(liveClass.getGroup() != null ? GroupDTO.fromGroup(liveClass.getGroup(), 0) : null)
                 .startTime(liveClass.getStartTime())
                 .durationMinutes(liveClass.getDurationMinutes())
                 .meetingPlatform(liveClass.getMeetingPlatform())

@@ -42,6 +42,13 @@ public class UserController {
         return ResponseEntity.ok(leaderboard);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchUsers(@AuthenticationPrincipal UserPrincipal principal,
+                                                     @RequestParam(required = false) String query) {
+        List<UserDTO> users = userService.searchUsers(principal.getId(), query);
+        return ResponseEntity.ok(users);
+    }
+
     @GetMapping("/analytics")
     public ResponseEntity<Map<String, Object>> getUserAnalytics(@AuthenticationPrincipal UserPrincipal principal) {
         Map<String, Object> analytics = userService.getUserAnalytics(principal.getId());
