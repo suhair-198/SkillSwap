@@ -28,8 +28,9 @@ public class SkillPact extends BaseEntity {
     @JoinColumn(name = "skill_b_id", nullable = false)
     private Skill skillB; // Skill taught by User B to User A
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // REQUESTED, ACCEPTED, ACTIVE, COMPLETED, CANCELLED
+    private SkillPactStatus status;
 
     @Column(columnDefinition = "TEXT")
     private String goals;

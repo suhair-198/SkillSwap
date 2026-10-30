@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -19,6 +18,9 @@ public class DatabaseConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseConfig.class);
     private static final String DEFAULT_H2_URL = "jdbc:h2:file:./data/skillswapdb;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;AUTO_RECONNECT=TRUE";
+
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
 
     @Value("${spring.datasource.url:#{null}}")
     private String springDatasourceUrl;
@@ -68,7 +70,7 @@ public class DatabaseConfig {
                 }
                 log.info("Parsed Railway DATABASE_URL for host: {}:{}", uri.getHost(), port);
             } catch (Exception e) {
-                log.warn("Failed to parse DATABASE_URL environment variable, falling back", e);
+                log.warn("Failed to parse DATABASE_URL environment variable", e);
             }
         }
 
@@ -86,7 +88,7 @@ public class DatabaseConfig {
             password = springDatasourcePassword;
         }
 
-        // If a remote/external database is targeted, attempt connection with fallback
+        // If a remote/external database is targeted, attempt connection with fail-fast check in production
         if (jdbcUrl != null && !jdbcUrl.contains(":h2:")) {
             log.info("Attempting to connect to primary database: {}", sanitizeUrl(jdbcUrl));
             try {
@@ -106,17 +108,28 @@ public class DatabaseConfig {
                     log.info("Successfully connected to primary database ({})", conn.getMetaData().getDatabaseProductName());
                     return primaryDs;
                 } catch (Exception ex) {
-                    log.warn("Primary database connection check failed: {}. Closing primary pool.", ex.getMessage());
+                    log.error("Primary database connection check failed: {}. Closing pool.", ex.getMessage());
                     primaryDs.close();
+                    throw ex;
                 }
             } catch (Exception e) {
-                log.warn("Could not initialize primary database ({})", e.getMessage());
-            }
+                boolean isProduction = System.getenv("RAILWAY_ENVIRONMENT") != null
+                        || System.getenv("RAILWAY_STATIC_URL") != null
+                        || "supabase".equalsIgnoreCase(activeProfile)
+                        || "prod".equalsIgnoreCase(activeProfile)
+                        || "production".equalsIgnoreCase(activeProfile);
 
-            log.warn("Falling back to local persistent H2 database to ensure uninterrupted deployment.");
+                if (isProduction) {
+                    log.error("CRITICAL: Failed to connect to primary database in production mode. "
+                            + "Failing fast to prevent data loss on ephemeral storage. URL: {}", sanitizeUrl(jdbcUrl), e);
+                    throw new IllegalStateException("Production database connection failure for " + sanitizeUrl(jdbcUrl), e);
+                }
+
+                log.warn("Could not connect to external database ({}). In dev profile, falling back to local H2.", e.getMessage());
+            }
         }
 
-        // Fallback / Default H2 DataSource
+        // Fallback / Default H2 DataSource for local development
         log.info("Initializing local persistent H2 database at ./data/skillswapdb");
         HikariConfig h2Config = new HikariConfig();
         h2Config.setJdbcUrl(DEFAULT_H2_URL);

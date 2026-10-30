@@ -5,10 +5,10 @@ import com.skillswap.exception.ResourceNotFoundException;
 import com.skillswap.model.ClassAttendance;
 import com.skillswap.model.LiveClass;
 import com.skillswap.model.SkillPact;
+import com.skillswap.model.SkillPactStatus;
 import com.skillswap.model.User;
 import com.skillswap.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,8 +67,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserDTO> getLeaderboard() {
-        return userRepository.findAll(Sort.by(Sort.Direction.DESC, "xp")).stream()
-                .limit(15)
+        return userRepository.findTop15ByOrderByXpDesc().stream()
                 .map(UserDTO::fromUser)
                 .collect(Collectors.toList());
     }
@@ -100,8 +99,8 @@ public class UserServiceImpl implements UserService {
         List<LiveClass> conductedClasses = liveClassRepository.findByInstructorId(userId);
 
         List<SkillPact> userPacts = skillPactRepository.findPactsForUser(userId);
-        long completedPacts = userPacts.stream().filter(p -> "COMPLETED".equals(p.getStatus())).count();
-        long activePacts = userPacts.stream().filter(p -> "ACTIVE".equals(p.getStatus())).count();
+        long completedPacts = userPacts.stream().filter(p -> SkillPactStatus.COMPLETED.equals(p.getStatus())).count();
+        long activePacts = userPacts.stream().filter(p -> SkillPactStatus.ACTIVE.equals(p.getStatus())).count();
 
         double learningHours = attendedRecords.stream()
                 .mapToDouble(a -> a.getLiveClass().getDurationMinutes() / 60.0)

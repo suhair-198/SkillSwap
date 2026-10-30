@@ -33,7 +33,7 @@ public class SkillPactDTO {
                 .userB(UserDTO.fromUser(pact.getUserB()))
                 .skillA(SkillDTO.fromSkill(pact.getSkillA()))
                 .skillB(SkillDTO.fromSkill(pact.getSkillB()))
-                .status(pact.getStatus())
+                .status(pact.getStatus() != null ? pact.getStatus().name() : null)
                 .goals(pact.getGoals())
                 .sessionsCount(pact.getSessionsCount())
                 .createdAt(pact.getCreatedAt())

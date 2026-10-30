@@ -5,6 +5,7 @@ import com.skillswap.dto.UserDTO;
 import com.skillswap.exception.BadRequestException;
 import com.skillswap.exception.ResourceNotFoundException;
 import com.skillswap.model.Connection;
+import com.skillswap.model.ConnectionStatus;
 import com.skillswap.model.User;
 import com.skillswap.repository.ConnectionRepository;
 import com.skillswap.repository.UserRepository;
@@ -46,21 +47,21 @@ public class ConnectionServiceImpl implements ConnectionService {
         Connection connection;
         if (existingOpt.isPresent()) {
             connection = existingOpt.get();
-            if ("ACCEPTED".equals(connection.getStatus())) {
+            if (ConnectionStatus.ACCEPTED.equals(connection.getStatus())) {
                 throw new BadRequestException("You are already connected with this user!");
             }
-            if ("PENDING".equals(connection.getStatus())) {
+            if (ConnectionStatus.PENDING.equals(connection.getStatus())) {
                 throw new BadRequestException("Connection request is already pending!");
             }
             // If declined, allow a re-request
             connection.setRequester(sender);
             connection.setReceiver(receiver);
-            connection.setStatus("PENDING");
+            connection.setStatus(ConnectionStatus.PENDING);
         } else {
             connection = Connection.builder()
                     .requester(sender)
                     .receiver(receiver)
-                    .status("PENDING")
+                    .status(ConnectionStatus.PENDING)
                     .build();
         }
 
@@ -78,11 +79,11 @@ public class ConnectionServiceImpl implements ConnectionService {
             throw new BadRequestException("You are not authorized to accept this connection request!");
         }
 
-        if (!"PENDING".equals(connection.getStatus())) {
+        if (!ConnectionStatus.PENDING.equals(connection.getStatus())) {
             throw new BadRequestException("Connection request is not pending!");
         }
 
-        connection.setStatus("ACCEPTED");
+        connection.setStatus(ConnectionStatus.ACCEPTED);
         Connection saved = connectionRepository.save(connection);
 
         // Gamification: Reward XP to both users for connecting!
@@ -108,11 +109,11 @@ public class ConnectionServiceImpl implements ConnectionService {
             throw new BadRequestException("You are not authorized to decline this connection request!");
         }
 
-        if (!"PENDING".equals(connection.getStatus())) {
+        if (!ConnectionStatus.PENDING.equals(connection.getStatus())) {
             throw new BadRequestException("Connection request is not pending!");
         }
 
-        connection.setStatus("DECLINED");
+        connection.setStatus(ConnectionStatus.DECLINED);
         Connection saved = connectionRepository.save(connection);
         return ConnectionDTO.fromConnection(saved);
     }
@@ -142,7 +143,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found");
         }
-        return connectionRepository.findByReceiverIdAndStatus(userId, "PENDING").stream()
+        return connectionRepository.findByReceiverIdAndStatus(userId, ConnectionStatus.PENDING).stream()
                 .map(ConnectionDTO::fromConnection)
                 .collect(Collectors.toList());
     }
@@ -153,7 +154,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found");
         }
-        return connectionRepository.findByRequesterIdAndStatus(userId, "PENDING").stream()
+        return connectionRepository.findByRequesterIdAndStatus(userId, ConnectionStatus.PENDING).stream()
                 .map(ConnectionDTO::fromConnection)
                 .collect(Collectors.toList());
     }

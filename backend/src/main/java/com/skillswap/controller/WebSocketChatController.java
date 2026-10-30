@@ -4,11 +4,17 @@ import com.skillswap.dto.MessageDTO;
 import com.skillswap.dto.MessageRequest;
 import com.skillswap.dto.TypingRequest;
 import com.skillswap.dto.UserStatusRequest;
+import com.skillswap.security.UserPrincipal;
 import com.skillswap.service.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
+
+import java.security.Principal;
+import java.util.UUID;
 
 @Controller
 public class WebSocketChatController {
@@ -22,26 +28,38 @@ public class WebSocketChatController {
         this.chatService = chatService;
     }
 
+    private UUID getAuthenticatedUserId(Principal principal) {
+        if (principal instanceof UsernamePasswordAuthenticationToken) {
+            Object p = ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+            if (p instanceof UserPrincipal) {
+                return ((UserPrincipal) p).getId();
+            }
+        }
+        throw new AccessDeniedException("Unauthenticated WebSocket client");
+    }
+
     @MessageMapping("/chat.sendPrivate")
-    public void sendPrivateMessage(MessageRequest request) {
+    public void sendPrivateMessage(MessageRequest request, Principal principal) {
+        UUID authenticatedSenderId = getAuthenticatedUserId(principal);
+
         MessageDTO savedMessage = chatService.savePrivateMessage(
-                request.getSenderId(),
+                authenticatedSenderId,
                 request.getRecipientId(),
                 request.getContent(),
                 request.getMediaUrl()
         );
 
-        // 1. Broadcast to recipient & sender topic endpoints for instant reliable delivery
+        // 1. Broadcast to recipient & sender topic endpoints for instant delivery
         messagingTemplate.convertAndSend(
                 "/topic/user." + request.getRecipientId(),
                 savedMessage
         );
         messagingTemplate.convertAndSend(
-                "/topic/user." + request.getSenderId(),
+                "/topic/user." + authenticatedSenderId,
                 savedMessage
         );
 
-        // 2. Also send to standard queue mappings
+        // 2. Also send to standard user queue mappings
         try {
             messagingTemplate.convertAndSendToUser(
                     request.getRecipientId().toString(),
@@ -49,7 +67,7 @@ public class WebSocketChatController {
                     savedMessage
             );
             messagingTemplate.convertAndSendToUser(
-                    request.getSenderId().toString(),
+                    authenticatedSenderId.toString(),
                     "/queue/messages",
                     savedMessage
             );
@@ -57,9 +75,11 @@ public class WebSocketChatController {
     }
 
     @MessageMapping("/chat.sendGroup")
-    public void sendGroupMessage(MessageRequest request) {
+    public void sendGroupMessage(MessageRequest request, Principal principal) {
+        UUID authenticatedSenderId = getAuthenticatedUserId(principal);
+
         MessageDTO savedMessage = chatService.saveGroupMessage(
-                request.getSenderId(),
+                authenticatedSenderId,
                 request.getGroupId(),
                 request.getContent(),
                 request.getMediaUrl()
@@ -73,7 +93,10 @@ public class WebSocketChatController {
     }
 
     @MessageMapping("/chat.typing")
-    public void handleTyping(TypingRequest request) {
+    public void handleTyping(TypingRequest request, Principal principal) {
+        UUID authenticatedSenderId = getAuthenticatedUserId(principal);
+        request.setSenderId(authenticatedSenderId);
+
         if (request.getRecipientId() != null) {
             messagingTemplate.convertAndSend(
                     "/topic/user." + request.getRecipientId() + ".typing",
@@ -95,8 +118,9 @@ public class WebSocketChatController {
     }
 
     @MessageMapping("/chat.status")
-    public void handleStatusUpdate(UserStatusRequest request) {
-        // Broadcast user online status to all subscribers: /topic/status
+    public void handleStatusUpdate(UserStatusRequest request, Principal principal) {
+        UUID authenticatedSenderId = getAuthenticatedUserId(principal);
+        request.setUserId(authenticatedSenderId);
         messagingTemplate.convertAndSend("/topic/status", request);
     }
 }

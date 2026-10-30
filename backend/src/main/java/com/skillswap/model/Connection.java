@@ -23,6 +23,7 @@ public class Connection extends BaseEntity {
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // PENDING, ACCEPTED, DECLINED
+    private ConnectionStatus status;
 }

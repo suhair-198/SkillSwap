@@ -6,6 +6,7 @@ import com.skillswap.exception.BadRequestException;
 import com.skillswap.exception.ResourceNotFoundException;
 import com.skillswap.model.Skill;
 import com.skillswap.model.SkillPact;
+import com.skillswap.model.SkillPactStatus;
 import com.skillswap.model.User;
 import com.skillswap.repository.SkillPactRepository;
 import com.skillswap.repository.SkillRepository;
@@ -56,7 +57,7 @@ public class SkillPactServiceImpl implements SkillPactService {
                 .userB(userB)
                 .skillA(skillA)
                 .skillB(skillB)
-                .status("REQUESTED")
+                .status(SkillPactStatus.REQUESTED)
                 .goals(request.getGoals())
                 .sessionsCount(0)
                 .build();
@@ -75,11 +76,11 @@ public class SkillPactServiceImpl implements SkillPactService {
             throw new BadRequestException("You are not authorized to accept this Skill Pact!");
         }
 
-        if (!"REQUESTED".equals(pact.getStatus())) {
+        if (!SkillPactStatus.REQUESTED.equals(pact.getStatus())) {
             throw new BadRequestException("Pact request must be in REQUESTED status to be accepted!");
         }
 
-        pact.setStatus("ACTIVE");
+        pact.setStatus(SkillPactStatus.ACTIVE);
         SkillPact saved = skillPactRepository.save(pact);
 
         // Gamification: Reward both for starting a barter pact
@@ -105,11 +106,11 @@ public class SkillPactServiceImpl implements SkillPactService {
             throw new BadRequestException("You are not authorized to decline this Skill Pact!");
         }
 
-        if (!"REQUESTED".equals(pact.getStatus())) {
+        if (!SkillPactStatus.REQUESTED.equals(pact.getStatus())) {
             throw new BadRequestException("Pact request must be in REQUESTED status to be declined!");
         }
 
-        pact.setStatus("CANCELLED");
+        pact.setStatus(SkillPactStatus.CANCELLED);
         SkillPact saved = skillPactRepository.save(pact);
         return SkillPactDTO.fromSkillPact(saved);
     }
@@ -124,11 +125,11 @@ public class SkillPactServiceImpl implements SkillPactService {
             throw new BadRequestException("You are not part of this Skill Pact!");
         }
 
-        if (!"ACTIVE".equals(pact.getStatus())) {
+        if (!SkillPactStatus.ACTIVE.equals(pact.getStatus())) {
             throw new BadRequestException("Pact must be in ACTIVE status to be completed!");
         }
 
-        pact.setStatus("COMPLETED");
+        pact.setStatus(SkillPactStatus.COMPLETED);
         SkillPact saved = skillPactRepository.save(pact);
 
         // Gamification: Large rewards on complete pact!
@@ -154,7 +155,7 @@ public class SkillPactServiceImpl implements SkillPactService {
             throw new BadRequestException("You are not part of this Skill Pact!");
         }
 
-        if (!"ACTIVE".equals(pact.getStatus())) {
+        if (!SkillPactStatus.ACTIVE.equals(pact.getStatus())) {
             throw new BadRequestException("Pact must be in ACTIVE status to log sessions!");
         }
 
@@ -167,10 +168,9 @@ public class SkillPactServiceImpl implements SkillPactService {
 
         userA.setXp(userA.getXp() + 15);
         userB.setXp(userB.getXp() + 15);
-        
-        // Streak updating
-        updateStreak(userA);
-        updateStreak(userB);
+
+        userA.setCurrentStreak(userA.getCurrentStreak() + 1);
+        userB.setCurrentStreak(userB.getCurrentStreak() + 1);
 
         userRepository.save(userA);
         userRepository.save(userB);
@@ -195,11 +195,7 @@ public class SkillPactServiceImpl implements SkillPactService {
         int newLevel = (user.getXp() / 100) + 1;
         if (newLevel > user.getLevel()) {
             user.setLevel(newLevel);
+            user.setReputation(user.getReputation() + 5);
         }
-    }
-
-    private void updateStreak(User user) {
-        // Increment streak count on activity
-        user.setCurrentStreak(user.getCurrentStreak() + 1);
     }
 }

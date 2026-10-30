@@ -24,7 +24,7 @@ public class ConnectionDTO {
                 .id(connection.getId())
                 .requester(UserDTO.fromUser(connection.getRequester()))
                 .receiver(UserDTO.fromUser(connection.getReceiver()))
-                .status(connection.getStatus())
+                .status(connection.getStatus() != null ? connection.getStatus().name() : null)
                 .build();
     }
 }

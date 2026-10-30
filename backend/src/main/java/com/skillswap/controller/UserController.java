@@ -1,6 +1,9 @@
 package com.skillswap.controller;
 
 import com.skillswap.dto.UserDTO;
+import com.skillswap.exception.BadRequestException;
+import com.skillswap.model.ConnectionStatus;
+import com.skillswap.repository.ConnectionRepository;
 import com.skillswap.security.UserPrincipal;
 import com.skillswap.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +20,12 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final ConnectionRepository connectionRepository;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, ConnectionRepository connectionRepository) {
         this.userService = userService;
+        this.connectionRepository = connectionRepository;
     }
 
     @GetMapping("/profile/{id}")
@@ -56,7 +61,16 @@ public class UserController {
     }
 
     @GetMapping("/analytics/{userId}")
-    public ResponseEntity<Map<String, Object>> getPeerAnalytics(@PathVariable UUID userId) {
+    public ResponseEntity<Map<String, Object>> getPeerAnalytics(@AuthenticationPrincipal UserPrincipal principal,
+                                                                @PathVariable UUID userId) {
+        if (!principal.getId().equals(userId)) {
+            boolean isConnected = connectionRepository.findConnectionBetween(principal.getId(), userId)
+                    .map(c -> ConnectionStatus.ACCEPTED.equals(c.getStatus()))
+                    .orElse(false);
+            if (!isConnected) {
+                throw new BadRequestException("You can only view detailed analytics for yourself or accepted connections.");
+            }
+        }
         Map<String, Object> analytics = userService.getUserAnalytics(userId);
         return ResponseEntity.ok(analytics);
     }

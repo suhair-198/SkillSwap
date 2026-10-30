@@ -1,6 +1,7 @@
 package com.skillswap.repository;
 
 import com.skillswap.model.SkillPact;
+import com.skillswap.model.SkillPactStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,6 +16,6 @@ public interface SkillPactRepository extends JpaRepository<SkillPact, UUID> {
     @Query("SELECT p FROM SkillPact p WHERE p.userA.id = :userId OR p.userB.id = :userId")
     List<SkillPact> findPactsForUser(@Param("userId") UUID userId);
     
-    List<SkillPact> findByUserAIdAndStatus(UUID userAId, String status);
-    List<SkillPact> findByUserBIdAndStatus(UUID userBId, String status);
+    List<SkillPact> findByUserAIdAndStatus(UUID userAId, SkillPactStatus status);
+    List<SkillPact> findByUserBIdAndStatus(UUID userBId, SkillPactStatus status);
 }

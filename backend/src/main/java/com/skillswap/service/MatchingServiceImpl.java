@@ -51,16 +51,18 @@ public class MatchingServiceImpl implements MatchingService {
             return Collections.emptyList();
         }
 
-        // Fetch all other users and their skills
-        List<User> allUsers = userRepository.findAll().stream()
-                .filter(u -> !u.getId().equals(userId))
-                .collect(Collectors.toList());
+        // Single JOIN FETCH query to get all peers and their skills in one round-trip (avoids N+1)
+        List<UserSkill> allPeerSkills = userSkillRepository.findAllSkillsForPeers(userId);
+        Map<User, List<UserSkill>> skillsByPeer = allPeerSkills.stream()
+                .collect(Collectors.groupingBy(UserSkill::getUser));
 
         List<MatchResponse> matches = new ArrayList<>();
 
-        for (User peer : allUsers) {
-            List<UserSkill> peerSkills = userSkillRepository.findByUserId(peer.getId());
-            if (peerSkills.isEmpty()) {
+        for (Map.Entry<User, List<UserSkill>> entry : skillsByPeer.entrySet()) {
+            User peer = entry.getKey();
+            List<UserSkill> peerSkills = entry.getValue();
+
+            if (peerSkills == null || peerSkills.isEmpty()) {
                 continue;
             }
 

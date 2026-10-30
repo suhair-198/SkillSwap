@@ -24,4 +24,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u WHERE u.id != :currentUserId")
     List<User> findAllExcept(@Param("currentUserId") UUID currentUserId);
+
+    List<User> findTop15ByOrderByXpDesc();
 }
