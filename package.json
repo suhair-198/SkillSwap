@@ -1,0 +1,11 @@
+{
+  "name": "skillswap",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SkillSwap Peer-to-Peer Student Learning Platform",
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "dev": "npm --prefix frontend run dev",
+    "start": "npm --prefix frontend run preview"
+  }
+}

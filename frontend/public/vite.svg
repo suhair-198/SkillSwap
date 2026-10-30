@@ -1,0 +1,12 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="favicon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#f97316" />
+      <stop offset="100%" stopColor="#ea580c" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#favicon-grad)"/>
+  <path d="M15 20C15 15.5817 18.5817 12 23 12H32M32 12L28 8M32 12L28 16" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M33 28C33 32.4183 29.4183 36 25 36H16M16 36L20 32M16 36L20 40" stroke="#fed7aa" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="24" r="2.5" fill="#ffffff"/>
+</svg>

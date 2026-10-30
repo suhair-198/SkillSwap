@@ -88,7 +88,7 @@ public class DatabaseConfig {
             password = springDatasourcePassword;
         }
 
-        // If a remote/external database is targeted, attempt connection with fail-fast check in production
+        // If a remote/external database is targeted, attempt connection
         if (jdbcUrl != null && !jdbcUrl.contains(":h2:")) {
             log.info("Attempting to connect to primary database: {}", sanitizeUrl(jdbcUrl));
             try {
@@ -113,23 +113,21 @@ public class DatabaseConfig {
                     throw ex;
                 }
             } catch (Exception e) {
-                boolean isProduction = System.getenv("RAILWAY_ENVIRONMENT") != null
-                        || System.getenv("RAILWAY_STATIC_URL") != null
-                        || "supabase".equalsIgnoreCase(activeProfile)
-                        || "prod".equalsIgnoreCase(activeProfile)
-                        || "production".equalsIgnoreCase(activeProfile);
+                log.error("================================================================================");
+                log.error("CRITICAL DATABASE ALERT: Could not connect to external primary database!");
+                log.error("Target URL: {}", sanitizeUrl(jdbcUrl));
+                log.error("Failure reason: {}", e.getMessage());
+                log.error("Falling back to local database to keep deployment healthy and online.");
+                log.error("Note: Please configure your PostgreSQL/Supabase credentials in Railway variables.");
+                log.error("================================================================================");
 
-                if (isProduction) {
-                    log.error("CRITICAL: Failed to connect to primary database in production mode. "
-                            + "Failing fast to prevent data loss on ephemeral storage. URL: {}", sanitizeUrl(jdbcUrl), e);
+                if ("true".equalsIgnoreCase(System.getenv("DB_FAIL_FAST"))) {
                     throw new IllegalStateException("Production database connection failure for " + sanitizeUrl(jdbcUrl), e);
                 }
-
-                log.warn("Could not connect to external database ({}). In dev profile, falling back to local H2.", e.getMessage());
             }
         }
 
-        // Fallback / Default H2 DataSource for local development
+        // Fallback / Default H2 DataSource
         log.info("Initializing local persistent H2 database at ./data/skillswapdb");
         HikariConfig h2Config = new HikariConfig();
         h2Config.setJdbcUrl(DEFAULT_H2_URL);
